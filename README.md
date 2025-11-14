@@ -1,122 +1,93 @@
-🛠️ Sistema de Administración para Taller Mecánico
-ASP.NET Core MVC · Razor · Class Library · POO · AOP · Eventos
+*🔧 Taller Mecánico MVC — 23 mayo de 2025
 
-Este proyecto es el sistema web principal, desarrollado con ASP.NET Core MVC y Razor Views, encargado de manejar toda la interacción del usuario, los controladores, las vistas y los servicios del sistema.
-El proyecto se integra con una biblioteca de clases independiente, donde reside toda la lógica del dominio, implementada con Programación Orientada a Objetos (POO), programación orientada a aspectos (AOP), eventos y principios sólidos de diseño, incluyendo la Inversión de Dependencias (DIP).
+Taller Mecánico MVC es un proyecto académico desarrollado como parte de un trabajo universitario.
+El objetivo fue construir una plataforma web para la gestión integral de un taller mecánico, permitiendo administrar clientes, mecánicos, órdenes de reparación y repuestos de manera organizada e intuitiva.
 
-El objetivo del sistema es proporcionar una solución completa, modular y escalable para la administración de un taller de mecánica automotriz, facilitando la gestión de clientes, mecánicos, repuestos, órdenes y procesos internos.
+---
 
-✨ Características del Proyecto
+*🧩 Descripción general
 
-✔️ Arquitectura MVC bien organizada
+La aplicación simula el funcionamiento operativo de un taller automotriz, permitiendo a los usuarios:
 
-✔️ Interfaz con Razor Views, layouts y vistas parciales
+🧑‍🔧 Registrar y gestionar mecánicos con sus datos básicos y funciones.
 
-✔️ Consumo de una Class Library que contiene toda la lógica del dominio
+🚗 Registrar clientes y vehículos asociados.
 
-✔️ Integración mediante servicios con Inversión de Dependencias
+📄 Crear órdenes de reparación para cada vehículo.
 
-✔️ Formularios dinámicos con AJAX y validación en cliente
+🧩 Asignar repuestos a una orden.
 
-✔️ Modelo POO puro: herencia, polimorfismo y encapsulación
+💵 Calcular automáticamente los costos según los repuestos asignados.
 
-✔️ Uso de AOP para separación de reglas transversales
+📌 Actualizar el estado de la orden (pendiente, en reparación, listo, pagado).
 
-✔️ Manejo de eventos para cambios en órdenes y procesos
+⚡ Usar AJAX para enviar información sin recargar la página.
 
-✔️ Gestión completa del taller: clientes, mecánicos, repuestos y órdenes
+---
 
-🧱 Arquitectura General del Sistema
+*🧠 Arquitectura del sistema
 
-El sistema está compuesto por dos capas principales:
+La solución está dividida en dos partes principales:
 
-🔹 1. Biblioteca de Clases (Dominio y Lógica de Negocio)
+*📚 Biblioteca de Clases (Dominio y Lógica)
 
-Contiene:
+Contiene toda la lógica del negocio, estructurada con:
 
-Entidades y estructuras basadas en POO
+✔️ Programación Orientada a Objetos (POO)
 
-Programación orientada a aspectos (AOP):
+✔️ Programación Orientada a Eventos
 
-Validaciones
+✔️ Programación Orientada a Aspectos (AOP)
 
-Reglas transversales
-
-Comportamientos repetitivos del dominio
-
-Eventos del dominio:
-
-Cambio de estado de órdenes
-
-Asignación de repuestos
-
-Modificaciones relevantes
-
-Interfaces y contratos siguiendo DIP
-
-Servicios y reglas del negocio
-
-Utilidades y componentes de soporte
-
-🔹 2. Proyecto Web — ASP.NET Core MVC + Razor
+✔️ Inversión de Dependencias (DIP)
 
 Incluye:
 
-Controladores MVC encargados del flujo de la aplicación
+Modelos del dominio (Cliente, Mecánico, Repuesto, Orden, etc.)
 
-Servicios de aplicación que comunican las vistas con el dominio
+Servicios y reglas del negocio
 
-Razor Views estructuradas con layout, parciales y helpers
+Validaciones centralizadas
 
-Integración con JavaScript y AJAX
+Eventos que reaccionan a cambios en las órdenes
 
-Validación de formularios
+*🌐 Proyecto Web (ASP.NET Core MVC)
 
-Renderizado dinámico de datos
+Se encarga de:
 
-Manejo de estados y acciones del usuario
+Controladores MVC
 
-🚀 Funcionalidades Principales
+Vistas Razor y parciales
 
-Gestión completa de clientes y mecánicos
+Formularios con validación
 
-Creación, edición y seguimiento de órdenes de reparación
+Scripts JavaScript + Fetch AJAX
 
-Control de estados:
+Rutas, redirecciones y manejo visual
 
-Pendiente
+---
 
-En reparación
+*🚀 Funcionalidades principales
 
-Listo para entrega
+🧑‍🔧 Gestión completa de mecánicos.
 
-Pagado
+🧍 Registro y administración de clientes.
 
-Registro y administración de repuestos
+🚗 Registro de vehículos.
 
-Asignación de repuestos a órdenes
+📄 Creación de órdenes de reparación.
 
-Búsqueda y filtrado dinámico
+🧩 Asignación de repuestos a cada orden.
 
-Actualizaciones mediante AJAX
+💵 Cálculo automático del costo total.
 
-Flujo operativo del taller totalmente administrado
+🔄 Cambios de estado de la orden.
 
-🔧 Integración con la Biblioteca de Clases
+⚡ Funciones AJAX para mejorar la experiencia del usuario.
 
-La comunicación entre el proyecto MVC y la biblioteca se realiza mediante:
+---
 
-Inyección de dependencias en Program.cs
-
-Servicios que implementan interfaces del dominio
-
-Modelos compartidos entre capas
-
-Contratos y reglas internas establecidos en la class library
-
-Esto asegura una arquitectura desacoplada, escalable y limpia.
-
-🛠️ Tecnologías Utilizadas
+*🛠️ Tecnologías utilizadas
 
 C#
 
@@ -126,10 +97,8 @@ ASP.NET Core MVC
 
 Razor Views
 
-jQuery y AJAX
+JavaScript
 
-Librería de clases para lógica del dominio
+Biblioteca de clases modular
 
 Principios SOLID
-
-POO, AOP y programación orientada a eventos
