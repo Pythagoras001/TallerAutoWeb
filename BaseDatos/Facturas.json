@@ -1,0 +1,104 @@
+[
+  {
+    "TipoPago": "Pago_Contado",
+    "Fecha": "2025-11-13T08:24:24.5737001-05:00",
+    "OrdenPagada": {
+      "Estado": "Completado",
+      "IdOrden": 1224,
+      "Reparacion": {
+        "$type": "cambio_aceite",
+        "Fecha": "2025-11-13T08:22:38.1423187-05:00",
+        "RepuestosUtilizados": [
+          {
+            "Nombre": "CebolliLlantas",
+            "Proveedor": "CebolliFranchise.TM",
+            "FechaAdquisicion": "2025-11-13T08:23:21.6693923-05:00",
+            "Costo": 123461
+          }
+        ],
+        "MecanicosEncargados": [
+          {
+            "Especialidad": "Electr\u00F3nicos",
+            "Id": 123456132,
+            "Nombre": "Miguel \u00C1ngel Correa",
+            "Telefono": 3021651526
+          },
+          {
+            "Especialidad": "Motores",
+            "Id": 1032165654,
+            "Nombre": "Santiago Ceballos Henao",
+            "Telefono": 3186506194
+          }
+        ],
+        "Carro": {
+          "$type": "gasolina",
+          "NroCilindros": 8,
+          "Placa": "ABC123",
+          "Marca": "Chevrolet",
+          "Modelo": "Challenger",
+          "Year": 2025,
+          "Propietario": {
+            "SaldoADeber": 0,
+            "TieneSaldo": false,
+            "Id": 11354621321,
+            "Nombre": "Miguel \u00C1ngel Puente",
+            "Telefono": 3002146546
+          }
+        },
+        "CostoManoObra": 12346
+      }
+    },
+    "MontoPagado": 135807
+  },
+  {
+    "TipoPago": "Pago_Credito",
+    "Fecha": "2025-11-13T08:28:48.7811065-05:00",
+    "OrdenPagada": {
+      "Estado": "Completado",
+      "IdOrden": 2706,
+      "Reparacion": {
+        "$type": "rep_puestaPunto",
+        "Fecha": "2025-11-13T08:27:24.8983808-05:00",
+        "RepuestosUtilizados": [
+          {
+            "Nombre": "CebolliVidrio",
+            "Proveedor": "CebolliRepuestos.com",
+            "FechaAdquisicion": "2025-11-13T08:27:54.7655554-05:00",
+            "Costo": 17000
+          }
+        ],
+        "MecanicosEncargados": [
+          {
+            "Especialidad": "Electr\u00F3nicos",
+            "Id": 123456132,
+            "Nombre": "Miguel \u00C1ngel Correa",
+            "Telefono": 3021651526
+          },
+          {
+            "Especialidad": "Motores",
+            "Id": 1032165654,
+            "Nombre": "Santiago Ceballos Henao",
+            "Telefono": 3186506194
+          }
+        ],
+        "Carro": {
+          "$type": "hibrido",
+          "NroBaterias": 8,
+          "Placa": "JAG156",
+          "Marca": "Chevrolet",
+          "Modelo": "5000",
+          "Year": 2025,
+          "Propietario": {
+            "SaldoADeber": 167000,
+            "TieneSaldo": true,
+            "Id": 135462424,
+            "Nombre": "Daniel Villa",
+            "Telefono": 32115461
+          }
+        },
+        "CostoManoObra": 150000
+      }
+    },
+    "MontoPagado": 167000
+  }
+]

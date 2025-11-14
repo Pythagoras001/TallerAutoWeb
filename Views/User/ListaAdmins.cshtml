@@ -1,0 +1,411 @@
+﻿@model IEnumerable<BibTaller.Clases.EstrucPersona.Persona>
+
+@{
+    ViewData["Title"] = "Lista de Administradores";
+
+    // Preparar colecciones en servidor
+    var adminsList = Model.OfType<BibTaller.Clases.EstrucPersona.Admin>().ToList();
+    var nombres = adminsList.Select(a => a.Nombre).Distinct();
+    var telefonos = adminsList.Select(a => a.Telefono).Distinct();
+    var ids = adminsList.Select(a => a.Id).Distinct();
+}
+<div class="container mt-4">
+    <h2 class="text-light mb-4">Lista de Administradores</h2>
+
+    <div class="row">
+        <!-- TABLA: administradores -->
+        <div class="col-md-7">
+            <div class="card bg-dark text-light shadow-lg border-success">
+                <div class="card-header bg-success text-dark fw-bold">Administradores Registrados</div>
+                <div class="card-body">
+                    <table class="table table-dark table-hover table-bordered mb-0">
+                        <thead class="table-success text-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Teléfono</th>
+                                <th>Clave de Acceso</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminsTableBody">
+                            @foreach (var a in adminsList)
+                            {
+                                <tr>
+                                    <td class="cell-id">@a.Id</td>
+                                    <td class="cell-nombre">@a.Nombre</td>
+                                    <td class="cell-telefono">@a.Telefono</td>
+                                    <td class="cell-clave">@a.ClaveAcceso</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTROLES: crear / buscar / formulario -->
+        <div class="col-md-5 d-flex flex-column align-items-center justify-content-start">
+            <div class="d-flex gap-3 mb-4">
+                <button type="button" id="btnCrear" class="btn btn-success btn-lg shadow">
+                    <i class="bi bi-person-plus"></i> Crear Admin
+                </button>
+                <button type="button" id="btnBuscar" class="btn btn-outline-light btn-lg shadow">
+                    <i class="bi bi-search"></i> Buscar Admin
+                </button>
+            </div>
+
+            <div id="hero" class="card border-success hero-card w-100 mb-3"></div>
+
+            <!-- Formulario crear/editar -->
+            <div id="createForm" class="card border-success create-form w-100 mb-3 d-none">
+                <div class="card-body">
+                    <form id="formAdmin" method="post" action="/Admin/CrearAdminAjax" novalidate>
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3 row align-items-center">
+                            <label class="col-5 col-form-label text-white">ID</label>
+                            <div class="col-7">
+                                <input name="id" id="inputId" type="number" min="0" step="1" class="form-control bg-dark text-light border-light" placeholder="Ingrese ID" required />
+                            </div>
+                        </div>
+
+                        <div class="mb-3 row align-items-center">
+                            <label class="col-5 col-form-label text-white">Nombre</label>
+                            <div class="col-7">
+                                <input name="nombre" id="inputNombre" type="text" class="form-control bg-dark text-light border-light" placeholder="Ingrese nombre" required />
+                            </div>
+                        </div>
+
+                        <div class="mb-3 row align-items-center">
+                            <label class="col-5 col-form-label text-white">Teléfono</label>
+                            <div class="col-7">
+                                <input name="telefono" id="inputTelefono" type="text" class="form-control bg-dark text-light border-light" placeholder="Ingrese teléfono" required />
+                            </div>
+                        </div>
+
+                        <div class="mb-3 row align-items-center">
+                            <label class="col-5 col-form-label text-white">Clave de Acceso</label>
+                            <div class="col-7">
+                                <input name="claveAcceso" id="inputClave" type="text" class="form-control bg-dark text-light border-light" placeholder="Ingrese clave" />
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="button" id="btnSubmitCrear" class="btn btn-success w-100">Crear</button>
+                            <button type="button" id="btnModificar" class="btn btn-warning w-100 d-none">Modificar</button>
+                            <button type="button" id="btnEliminar" class="btn btn-danger w-100 d-none">Eliminar</button>
+                            <button type="button" id="btnCancelarCrear" class="btn btn-outline-light w-100">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Formulario buscar -->
+            <div id="searchForm" class="card border-success create-form w-100 mb-3 d-none">
+                <div class="card-body">
+                    <div class="mb-3 row align-items-center">
+                        <label class="col-5 col-form-label text-white">ID</label>
+                        <div class="col-7">
+                            <input id="idSearch" list="idsList" class="form-control bg-dark text-light border-light" placeholder="ID o seleccionar" />
+                            <datalist id="idsList">
+                                @foreach (var id in ids)
+                                {
+                                    <option value="@id" />
+                                }
+                            </datalist>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row align-items-center">
+                        <label class="col-5 col-form-label text-white">Nombre</label>
+                        <div class="col-7">
+                            <input id="nameSearch" list="namesList" class="form-control bg-dark text-light border-light" placeholder="Nombre o seleccionar" />
+                            <datalist id="namesList">
+                                @foreach (var n in nombres)
+                                {
+                                    <option value="@n" />
+                                }
+                            </datalist>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row align-items-center">
+                        <label class="col-5 col-form-label text-white">Teléfono</label>
+                        <div class="col-7">
+                            <input id="phoneSearch" list="phonesList" class="form-control bg-dark text-light border-light" placeholder="Teléfono o seleccionar" />
+                            <datalist id="phonesList">
+                                @foreach (var t in telefonos)
+                                {
+                                    <option value="@t" />
+                                }
+                            </datalist>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="button" id="btnDoSearch" class="btn btn-success w-100">Buscar</button>
+                        <button type="button" id="btnClearSearch" class="btn btn-outline-light w-100">Mostrar todo</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a asp-action="Index" class="btn btn-outline-light">Volver</a>
+    </div>
+</div>
+
+<style>
+    body {
+        background-color: #121212;
+    }
+
+    .hero-card {
+        position: relative;
+        overflow: hidden;
+        border-radius: 0.5rem;
+        min-height: 180px;
+        aspect-ratio: 16 / 9;
+        background-color: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #hero {
+        background-image: url('@Url.Content("~/img/FondoInterfazAdmins.png")');
+        background-size: contain;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    .create-form {
+        background-image: none !important;
+        background-color: rgba(18,18,18,0.98);
+    }
+
+        .create-form .form-control, .create-form .form-select {
+            background-color: #1f1f1f;
+            color: #e9ecef;
+            border-radius: 0.6rem;
+            border-width: 2px;
+        }
+
+    .form-control[readonly] {
+        background-color: #2b2b2b;
+        opacity: 1;
+        cursor: not-allowed;
+    }
+
+    .d-none {
+        display: none !important;
+    }
+
+    @@media (max-width: 576px) {
+        .hero-card, .create-form {
+            aspect-ratio: auto;
+            height: 220px;
+        }
+    }
+</style>
+
+<script>
+    // serializado para autocompletes y búsqueda local
+    const admins = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(adminsList.Select(a => new { id = a.Id.ToString(), nombre = a.Nombre, telefono = a.Telefono.ToString(), clave = a.ClaveAcceso })));
+
+    document.addEventListener('DOMContentLoaded', () => {
+        /* SELECTORES */
+        const btnCrear = document.getElementById('btnCrear');
+        const btnBuscar = document.getElementById('btnBuscar');
+        const btnCancelarCrear = document.getElementById('btnCancelarCrear');
+        const btnDoSearch = document.getElementById('btnDoSearch');
+        const btnClearSearch = document.getElementById('btnClearSearch');
+        const btnSubmitCrear = document.getElementById('btnSubmitCrear');
+
+        const hero = document.getElementById('hero');
+        const createForm = document.getElementById('createForm');
+        const searchForm = document.getElementById('searchForm');
+        const formAdmin = document.getElementById('formAdmin');
+        const tableBody = document.getElementById('adminsTableBody');
+
+        const idSearch = document.getElementById('idSearch');
+        const nameSearch = document.getElementById('nameSearch');
+        const phoneSearch = document.getElementById('phoneSearch');
+
+        const idInput = document.getElementById('inputId');
+
+        /* UI TOGGLING */
+        btnCrear?.addEventListener('click', () => {
+            hero.classList.add('d-none');
+            searchForm.classList.add('d-none');
+            createForm.classList.toggle('d-none');
+            if (idInput) idInput.readOnly = false; // permitir editar ID en creación
+            if (!createForm.classList.contains('d-none')) createForm.querySelector('input, select, textarea, button')?.focus();
+        });
+
+        btnBuscar?.addEventListener('click', () => {
+            hero.classList.add('d-none');
+            createForm.classList.add('d-none');
+            searchForm.classList.toggle('d-none');
+            if (!searchForm.classList.contains('d-none')) nameSearch.focus();
+            else { hero.classList.remove('d-none'); filterTable('', '', ''); }
+        });
+
+        btnCancelarCrear?.addEventListener('click', () => {
+            createForm.classList.add('d-none'); hero.classList.remove('d-none'); formAdmin.reset();
+            if (idInput) idInput.readOnly = false;
+        });
+
+        /* CREAR (AJAX) */
+        btnSubmitCrear?.addEventListener('click', async () => {
+            const idVal = formAdmin.querySelector('[name="id"]').value.trim();
+            const nombreVal = formAdmin.querySelector('[name="nombre"]').value.trim();
+            const telefonoVal = formAdmin.querySelector('[name="telefono"]').value.trim();
+            const claveVal = formAdmin.querySelector('[name="claveAcceso"]').value.trim();
+
+            if (!idVal || !nombreVal || !telefonoVal) { alert('Completa ID, Nombre y Teléfono.'); return; }
+
+            const token = formAdmin.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            const formData = new FormData(formAdmin);
+
+            try {
+                const res = await fetch(formAdmin.action, { method: 'POST', headers: token ? { 'RequestVerificationToken': token } : {}, body: formData });
+                if (!res.ok) { const text = await res.text(); console.error(text); alert('Error al crear.'); return; }
+                const payload = await res.json();
+                if (payload?.success && payload.admin) {
+                    const a = payload.admin;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td class="cell-id">${a.id}</td><td class="cell-nombre">${a.nombre}</td><td class="cell-telefono">${a.telefono}</td><td class="cell-clave">${a.clave}</td>`;
+                    tableBody.appendChild(tr);
+                    admins.push({ id: a.id.toString(), nombre: a.nombre, telefono: a.telefono.toString(), clave: a.clave });
+                    formAdmin.reset(); if (idInput) idInput.readOnly = false;
+                    createForm.classList.add('d-none'); hero.classList.remove('d-none');
+                } else alert('Respuesta inválida.');
+            } catch (err) { console.error(err); alert('Error de red.'); }
+        });
+
+        /* AUTOCOMPLETE / SINCRONIZACIÓN */
+        nameSearch?.addEventListener('input', () => {
+            const v = nameSearch.value.trim(); if (!v) return;
+            const m = admins.find(x => x.nombre === v); if (m) { idSearch.value = m.id; phoneSearch.value = m.telefono; }
+        });
+        idSearch?.addEventListener('input', () => {
+            const v = idSearch.value.trim(); if (!v) return;
+            const m = admins.find(x => x.id === v); if (m) { nameSearch.value = m.nombre; phoneSearch.value = m.telefono; }
+        });
+        phoneSearch?.addEventListener('input', () => {
+            const v = phoneSearch.value.trim(); if (!v) return;
+            const m = admins.find(x => x.telefono === v); if (m) { nameSearch.value = m.nombre; idSearch.value = m.id; }
+        });
+
+        /* FILTRADO LOCAL */
+        btnDoSearch?.addEventListener('click', () => {
+            const id = (idSearch.value || '').trim();
+            const name = (nameSearch.value || '').trim().toLowerCase();
+            const phone = (phoneSearch.value || '').trim();
+            filterTable(id, name, phone);
+        });
+        btnClearSearch?.addEventListener('click', () => {
+            idSearch.value = ''; nameSearch.value = ''; phoneSearch.value = '';
+            filterTable('', '', ''); searchForm.classList.add('d-none'); hero.classList.remove('d-none');
+        });
+
+        function filterTable(id, name, phone) {
+            Array.from(tableBody.querySelectorAll('tr')).forEach(row => {
+                const cellId = row.querySelector('.cell-id')?.textContent?.trim() || '';
+                const cellName = (row.querySelector('.cell-nombre')?.textContent || '').trim().toLowerCase();
+                const cellPhone = row.querySelector('.cell-telefono')?.textContent?.trim() || '';
+                let visible = true;
+                if (id) visible = visible && cellId.includes(id);
+                if (name) visible = visible && cellName.includes(name);
+                if (phone) visible = visible && cellPhone.includes(phone);
+                row.style.display = visible ? '' : 'none';
+            });
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Selectores principales
+        const tableBody = document.getElementById('adminsTableBody');
+        const formAdmin = document.getElementById('formAdmin');
+        const createForm = document.getElementById('createForm');
+        const hero = document.getElementById('hero');
+
+        const btnSubmitCrear = document.getElementById('btnSubmitCrear');
+        const btnModificar = document.getElementById('btnModificar');
+        const btnEliminar = document.getElementById('btnEliminar');
+        const btnCancelarCrear = document.getElementById('btnCancelarCrear');
+
+        const idInput = document.getElementById('inputId');
+        const nombreInput = document.getElementById('inputNombre');
+        const telefonoInput = document.getElementById('inputTelefono');
+        const claveInput = document.getElementById('inputClave');
+
+        // Comprueba existencia de elementos para evitar errores
+        if (!tableBody || !formAdmin) {
+            console.warn('ListaAdmins: elementos esperados no encontrados en DOM.');
+            return;
+        }
+
+        // Helper: lee token antiforgery desde el formulario
+        function getToken() {
+            return formAdmin.querySelector('input[name="__RequestVerificationToken"]')?.value || null;
+        }
+
+        // Función para entrar en modo edición (mostrar botones editar/eliminar)
+        function enterEditMode(tr) {
+            // Rellenar inputs a partir de la fila seleccionada (clases .cell-*)
+            const id = tr.querySelector('.cell-id')?.textContent?.trim() || '';
+            const nombre = tr.querySelector('.cell-nombre')?.textContent?.trim() || '';
+            const telefono = tr.querySelector('.cell-telefono')?.textContent?.trim() || '';
+            const clave = tr.querySelector('.cell-clave')?.textContent?.trim() || '';
+
+            if (idInput) idInput.value = id;
+            if (nombreInput) nombreInput.value = nombre;
+            if (telefonoInput) telefonoInput.value = telefono;
+            if (claveInput) claveInput.value = clave;
+
+            // Bloquear edición del ID en modo edición
+            if (idInput) idInput.readOnly = true;
+
+            // UI
+            createForm.classList.remove('d-none');
+            hero.classList.add('d-none');
+            btnSubmitCrear.classList.add('d-none');
+            btnModificar.classList.remove('d-none');
+            btnEliminar.classList.remove('d-none');
+
+            // marcar fila visualmente
+            tableBody.querySelectorAll('tr').forEach(r => r.classList.remove('table-active'));
+            tr.classList.add('table-active');
+
+            // guardar índice para actualizar/eliminar la fila después
+            formAdmin.dataset.selectedRowIndex = Array.from(tableBody.querySelectorAll('tr')).indexOf(tr).toString();
+        }
+
+        // Delegación: click sobre tbody -> detectar fila
+        tableBody.addEventListener('click', (e) => {
+            const tr = e.target.closest('tr');
+            if (!tr || !tableBody.contains(tr)) return;
+            enterEditMode(tr);
+        });
+
+        // Cancelar: restaurar estado inicial
+        btnCancelarCrear?.addEventListener('click', () => {
+            formAdmin.reset();
+            if (idInput) idInput.readOnly = false;
+            createForm.classList.add('d-none');
+            hero.classList.remove('d-none');
+            btnSubmitCrear.classList.remove('d-none');
+            btnModificar.classList.add('d-none');
+            btnEliminar.classList.add('d-none');
+            tableBody.querySelectorAll('tr').forEach(r => r.classList.remove('table-active'));
+        });
+
+        // -- Mantén tus handlers existentes para Crear/Modificar/Eliminar aquí --
+        // btnSubmitCrear, btnModificar, btnEliminar listeners ya definidos en tu archivo
+        // (este bloque solo añade la selección y garantiza readonly del ID)
+    });
+</script>

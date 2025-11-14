@@ -1,0 +1,97 @@
+﻿@{
+    ViewData["Title"] = "Cebolli Sport Y Asociados";
+}
+
+<style>
+    body {
+        background-color: #131313;
+        font-family: 'Segoe UI', Arial, sans-serif;
+    }
+
+    .main-container {
+        align-items: center;
+        text-align: center;
+        color: #fff;
+        margin-top: 40px;
+        height: 70vh;
+    }
+
+    .main-title {
+        padding-top: 100px;
+        font-size: 3.2rem;
+        font-weight: bold;
+        border-color: #54ffbb;
+        color: #54ffbb;
+    }
+
+    .cards-container {
+        align-items: center;
+        display: flex;
+        justify-content: center;
+        gap: 45px;
+        margin-top: 3px;
+        height: 60vh;
+    }
+
+    .option-card {
+        width: 260px;
+        height: 220px;
+        background: #131313;
+        border: 2.5px solid #24bb6a;
+        border-radius: 16px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 12px 0px;
+        overflow: hidden;
+        cursor: pointer;
+    }
+
+        .option-card:hover {
+            box-shadow: 0 0 16px #24bb6a50;
+            border-color: #54ffbb;
+            color: #54ffbb;
+        }
+
+    .card-text {
+        color: #24bb6a;
+        font-size: 1.35rem;
+        font-weight: 500;
+        margin-bottom: 14px;
+    }
+
+    a {
+        text-decoration: none;
+    }
+
+    .card-img {
+        width: 80%;
+        height: auto;
+        object-fit: contain;
+    }
+</style>
+
+
+<div class="main-container">
+
+    <div class="main-title">Seleccione el tipo de Usuario</div>
+
+    <div class="cards-container">
+        <a asp-action="Clientes" class="option-card">
+            <div class="card-text">Clientes</div>
+            <img class="card-img" src="/img/cliente.png" alt="Imagen Orden">
+        </a>
+
+        <a asp-action="Mecanicos" class="option-card">
+            <div class="card-text">Mecánicos</div>
+            <img class="card-img" src="/img/mecanico.png" alt="Imagen Orden">
+        </a>
+
+        <a asp-action="Admins" class="option-card">
+            <div class="card-text">Administradores</div>
+            <img class="card-img" src="/img/administrador.png" alt="Imagen Orden">
+        </a>
+    </div>
+
+</div>

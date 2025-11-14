@@ -1,0 +1,497 @@
+﻿@model IEnumerable<BibTaller.Clases.EstrucPersona.Persona>
+
+@{
+    ViewData["Title"] = "Lista de Mecanicos";
+
+    // Preparar colecciones en servidor
+    var mecanicosList = Model.OfType<BibTaller.Clases.EstrucPersona.Mecanico>().ToList();
+    var nombres = mecanicosList.Select(m => m.Nombre).Distinct();
+    var telefonos = mecanicosList.Select(m => m.Telefono).Distinct();
+    var ids = mecanicosList.Select(m => m.Id).Distinct();
+    var especialidades = mecanicosList.Select(m => m.Especialidad).Distinct();
+}
+<div class="container mt-4">
+    
+    <h2 class="text-light mb-4">Lista de Mecánicos</h2>
+    <div id="mensaje"></div>
+
+    <div class="row">
+        <!-- TABLA: lista de mecánicos -->
+        <div class="col-md-7">
+            <div class="card bg-dark text-light shadow-lg border-success">
+                <div class="card-header bg-success text-dark fw-bold">Mecánicos Registrados</div>
+                <div class="card-body">
+                    <table class="table table-dark table-hover table-bordered mb-0">
+                        <thead class="table-success text-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Teléfono</th>
+                                <th>Especialidad</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mecanicosTableBody">
+                            @foreach (var m in mecanicosList)
+                            {
+                                <tr>
+                                    <td class="cell-id">@m.Id</td>
+                                    <td class="cell-nombre">@m.Nombre</td>
+                                    <td class="cell-telefono">@m.Telefono</td>
+                                    <td class="cell-especialidad">@m.Especialidad</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTROLES: crear / buscar / formulario -->
+        <div class="col-md-5 d-flex flex-column align-items-center justify-content-start">
+            <div class="d-flex gap-3 mb-4">
+                <button type="button" id="btnCrear" class="btn btn-success btn-lg shadow">
+                    <i class="bi bi-person-plus"></i> Crear Mecánico
+                </button>
+                <button type="button" id="btnBuscar" class="btn btn-outline-light btn-lg shadow">
+                    <i class="bi bi-search"></i> Buscar Mecánico
+                </button>
+            </div>
+
+            <div id="hero" class="card border-success hero-card w-100 mb-3"></div>
+
+            <!-- Formulario crear/editar -->
+            <div id="createForm" class="card border-success create-form w-100 mb-3 d-none">
+                <div class="card-body">
+                    <form id="formMecanico" method="post" action="/Mecanico/CrearMecanicoAjax" novalidate>
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3 row align-items-center">
+                            <label class="col-5 col-form-label text-white">ID</label>
+                            <div class="col-7">
+                                <input name="id" id="inputId" type="number" min="0" step="1" class="form-control bg-dark text-light border-light" placeholder="Ingrese ID" required />
+                            </div>
+                        </div>
+
+                        <div class="mb-3 row align-items-center">
+                            <label class="col-5 col-form-label text-white">Nombre</label>
+                            <div class="col-7">
+                                <input name="nombre" id="inputNombre" type="text" class="form-control bg-dark text-light border-light" placeholder="Ingrese nombre" required />
+                            </div>
+                        </div>
+
+                        <div class="mb-3 row align-items-center">
+                            <label class="col-5 col-form-label text-white">Teléfono</label>
+                            <div class="col-7">
+                                <input name="telefono" id="inputTelefono" type="text" class="form-control bg-dark text-light border-light" placeholder="Ingrese teléfono" required />
+                            </div>
+                        </div>
+
+                        <div class="mb-3 row align-items-center">
+                            <label class="col-5 col-form-label text-white">Especialidad</label>
+                            <div class="col-7">
+                                <input name="especialidad" id="inputEspecialidad" list="especialidadesList" class="form-control bg-dark text-light border-light" placeholder="Selecciona o escribe" />
+                                <datalist id="especialidadesList">
+                                    @foreach (var e in especialidades)
+                                    {
+                                        <option value="@e" />
+                                    }
+                                </datalist>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="button" id="btnSubmitCrear" class="btn btn-success w-100">Crear</button>
+                            <button type="button" id="btnModificar" class="btn btn-warning w-100 d-none">Modificar</button>
+                            <button type="button" id="btnEliminar" class="btn btn-danger w-100 d-none">Eliminar</button>
+                            <button type="button" id="btnCancelarCrear" class="btn btn-outline-light w-100">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Formulario buscar -->
+            <div id="searchForm" class="card border-success create-form w-100 mb-3 d-none">
+                <div class="card-body">
+                    <div class="mb-3 row align-items-center">
+                        <label class="col-5 col-form-label text-white">ID</label>
+                        <div class="col-7">
+                            <input id="idSearch" list="idsList" class="form-control bg-dark text-light border-light" placeholder="ID o seleccionar" />
+                            <datalist id="idsList">
+                                @foreach (var id in ids)
+                                {
+                                    <option value="@id" />
+                                }
+                            </datalist>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row align-items-center">
+                        <label class="col-5 col-form-label text-white">Nombre</label>
+                        <div class="col-7">
+                            <input id="nameSearch" list="namesList" class="form-control bg-dark text-light border-light" placeholder="Nombre o seleccionar" />
+                            <datalist id="namesList">
+                                @foreach (var n in nombres)
+                                {
+                                    <option value="@n" />
+                                }
+                            </datalist>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row align-items-center">
+                        <label class="col-5 col-form-label text-white">Teléfono</label>
+                        <div class="col-7">
+                            <input id="phoneSearch" list="phonesList" class="form-control bg-dark text-light border-light" placeholder="Teléfono o seleccionar" />
+                            <datalist id="phonesList">
+                                @foreach (var t in telefonos)
+                                {
+                                    <option value="@t" />
+                                }
+                            </datalist>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="button" id="btnDoSearch" class="btn btn-success w-100">Buscar</button>
+                        <button type="button" id="btnClearSearch" class="btn btn-outline-light w-100">Mostrar todo</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a asp-action="Index" class="btn btn-outline-light">Volver</a>
+    </div>
+</div>
+
+<style>
+    body {
+        background-color: #121212;
+    }
+
+    .hero-card {
+        position: relative;
+        overflow: hidden;
+        border-radius: 0.5rem;
+        min-height: 180px;
+        aspect-ratio: 16 / 9;
+        background-color: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #hero {
+        background-image: url('@Url.Content("/img/FondoInterfazMecanico.png")');
+        background-size: contain;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    .create-form {
+        background-image: none !important;
+        background-color: rgba(18,18,18,0.98);
+    }
+
+        .create-form .form-control, .create-form .form-select {
+            background-color: #1f1f1f;
+            color: #e9ecef;
+            border-radius: 0.6rem;
+            border-width: 2px;
+        }
+
+    .form-control[readonly] {
+        background-color: #2b2b2b;
+        opacity: 1;
+        cursor: not-allowed;
+    }
+
+    .d-none {
+        display: none !important;
+    }
+
+    @@media (max-width: 576px) {
+        .hero-card, .create-form {
+            aspect-ratio: auto;
+            height: 220px;
+        }
+    }
+</style>
+
+<script>
+    // serializado para autocompletes y búsqueda local
+    const mecanicos = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(mecanicosList.Select(m => new { id = m.Id.ToString(), nombre = m.Nombre, telefono = m.Telefono.ToString(), especialidad = m.Especialidad })));
+
+    document.addEventListener('DOMContentLoaded', () => {
+        /* SELECTORES */
+        const btnCrear = document.getElementById('btnCrear');
+        const btnBuscar = document.getElementById('btnBuscar');
+        const btnCancelarCrear = document.getElementById('btnCancelarCrear');
+        const btnDoSearch = document.getElementById('btnDoSearch');
+        const btnClearSearch = document.getElementById('btnClearSearch');
+        const btnSubmitCrear = document.getElementById('btnSubmitCrear');
+
+        const hero = document.getElementById('hero');
+        const createForm = document.getElementById('createForm');
+        const searchForm = document.getElementById('searchForm');
+        const formMecanico = document.getElementById('formMecanico');
+        const tableBody = document.getElementById('mecanicosTableBody');
+
+        const idSearch = document.getElementById('idSearch');
+        const nameSearch = document.getElementById('nameSearch');
+        const phoneSearch = document.getElementById('phoneSearch');
+
+        const idInput = document.getElementById('inputId');
+
+        /* UI TOGGLING */
+        btnCrear?.addEventListener('click', () => {
+            hero.classList.add('d-none');
+            searchForm.classList.add('d-none');
+            createForm.classList.toggle('d-none');
+            if (idInput) idInput.readOnly = false; // permitir editar ID en creación
+            if (!createForm.classList.contains('d-none')) createForm.querySelector('input, select, textarea, button')?.focus();
+        });
+
+        btnBuscar?.addEventListener('click', () => {
+            hero.classList.add('d-none');
+            createForm.classList.add('d-none');
+            searchForm.classList.toggle('d-none');
+            if (!searchForm.classList.contains('d-none')) nameSearch.focus();
+            else { hero.classList.remove('d-none'); filterTable('', '', ''); }
+        });
+
+        btnCancelarCrear?.addEventListener('click', () => {
+            createForm.classList.add('d-none'); hero.classList.remove('d-none'); formMecanico.reset();
+            if (idInput) idInput.readOnly = false;
+        });
+
+       
+        /* --- CREAR MECÁNICO: envío AJAX controlado (btnSubmitCrear) --- */
+        btnSubmitCrear?.addEventListener('click', async () => {
+            const idVal = formMecanico.querySelector('[name="id"]').value.trim();
+            const nombreVal = formMecanico.querySelector('[name="nombre"]').value.trim();
+            const telefonoVal = formMecanico.querySelector('[name="telefono"]').value.trim();
+            const especialidadVal = formMecanico.querySelector('[name="especialidad"]').value.trim();
+
+            // Validaciones básicas antes de enviar
+            if (!idVal || !nombreVal || !telefonoVal || !especialidadVal) {
+                mostrarMensaje('Completa todos los campos antes de crear el mecánico.', 'danger');
+                return;
+            }
+
+            // Token antifalsificación
+            const token = formMecanico.querySelector('input[name="__RequestVerificationToken"]')?.value || null;
+            const formData = new FormData(formMecanico);
+
+            try {
+                const res = await fetch('/Mecanico/CrearMecanicoAjax', {
+                    method: 'POST',
+                    headers: token ? { 'RequestVerificationToken': token } : {},
+                    body: formData
+                });
+
+                if (!res.ok) throw new Error('Error en la respuesta del servidor.');
+
+                const payload = await res.json();
+
+                // ✅ Mostrar mensaje según el resultado
+                if (payload.success) {
+                    mostrarMensaje(payload.mensajeEvento || 'Mecánico creado correctamente.', 'success');
+
+                    const m = payload.mecanico;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="cell-id">${m.id}</td>
+                        <td class="cell-nombre">${m.nombre}</td>
+                        <td class="cell-telefono">${m.telefono}</td>
+                        <td class="cell-especialidad">${m.especialidad}</td>
+                    `;
+                    tableBody.appendChild(tr);
+
+                    // Si manejas una lista global (como clients[])
+                    mecanicos.push({
+                        id: m.id.toString(),
+                        nombre: m.nombre,
+                        telefono: m.telefono.toString(),
+                        especialidad: m.especialidad
+                    });
+
+                    formMecanico.reset();
+                    if (idInput) idInput.readOnly = false;
+
+                    // Ocultar formulario y mostrar pantalla principal
+                    createForm.classList.add('d-none');
+                    hero.classList.remove('d-none');
+                } else {
+                    mostrarMensaje(payload.mensajeEvento || 'No se pudo crear el mecánico.', 'danger');
+                }
+
+            } catch (err) {
+                console.error(err);
+                mostrarMensaje('Error al conectar con el servidor.', 'danger');
+            }
+        });
+
+        function mostrarMensaje(texto, tipo = 'info') {
+            const contenedor = document.getElementById('mensaje');
+            if (!contenedor) return;
+
+            contenedor.innerHTML = `
+                <div class="alert alert-${tipo} alert-dismissible fade show" role="alert">
+                    <strong>${texto}</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>`;
+
+            setTimeout(() => {
+                const alerta = contenedor.querySelector('.alert');
+                if (alerta) { alerta.classList.remove('show'); alerta.classList.add('fade'); setTimeout(() => alerta.remove(), 500); }
+            }, 3000);
+        }
+
+
+
+        /* AUTOCOMPLETE / SINCRONIZACIÓN */
+        nameSearch?.addEventListener('input', () => {
+            const v = nameSearch.value.trim(); if (!v) return;
+            const m = mecanicos.find(x => x.nombre === v); if (m) { idSearch.value = m.id; phoneSearch.value = m.telefono; }
+        });
+        idSearch?.addEventListener('input', () => {
+            const v = idSearch.value.trim(); if (!v) return;
+            const m = mecanicos.find(x => x.id === v); if (m) { nameSearch.value = m.nombre; phoneSearch.value = m.telefono; }
+        });
+        phoneSearch?.addEventListener('input', () => {
+            const v = phoneSearch.value.trim(); if (!v) return;
+            const m = mecanicos.find(x => x.telefono === v); if (m) { nameSearch.value = m.nombre; idSearch.value = m.id; }
+        });
+
+        /* FILTRADO LOCAL */
+        btnDoSearch?.addEventListener('click', () => {
+            const id = (idSearch.value || '').trim();
+            const name = (nameSearch.value || '').trim().toLowerCase();
+            const phone = (phoneSearch.value || '').trim();
+            filterTable(id, name, phone);
+        });
+        btnClearSearch?.addEventListener('click', () => {
+            idSearch.value = ''; nameSearch.value = ''; phoneSearch.value = '';
+            filterTable('', '', ''); searchForm.classList.add('d-none'); hero.classList.remove('d-none');
+        });
+
+        function filterTable(id, name, phone) {
+            Array.from(tableBody.querySelectorAll('tr')).forEach(row => {
+                const cellId = row.querySelector('.cell-id')?.textContent?.trim() || '';
+                const cellName = (row.querySelector('.cell-nombre')?.textContent || '').trim().toLowerCase();
+                const cellPhone = row.querySelector('.cell-telefono')?.textContent?.trim() || '';
+                let visible = true;
+                if (id) visible = visible && cellId.includes(id);
+                if (name) visible = visible && cellName.includes(name);
+                if (phone) visible = visible && cellPhone.includes(phone);
+                row.style.display = visible ? '' : 'none';
+            });
+        }
+    });
+
+    /* SELECCIÓN DE FILA Y ACCIONES (editar/eliminar) */
+    document.addEventListener('DOMContentLoaded', () => {
+        const tableBody = document.getElementById('mecanicosTableBody');
+        const formMecanico = document.getElementById('formMecanico');
+        const createForm = document.getElementById('createForm');
+        const hero = document.getElementById('hero');
+
+        const btnSubmitCrear = document.getElementById('btnSubmitCrear');
+        const btnModificar = document.getElementById('btnModificar');
+        const btnEliminar = document.getElementById('btnEliminar');
+        const btnCancelarCrear = document.getElementById('btnCancelarCrear');
+        const idInput = document.getElementById('inputId');
+
+        function getToken() { return formMecanico.querySelector('input[name="__RequestVerificationToken"]')?.value || null; }
+
+        tableBody?.addEventListener('click', (e) => {
+            const tr = e.target.closest('tr'); if (!tr) return;
+            const id = tr.querySelector('.cell-id')?.textContent?.trim() || '';
+            const nombre = tr.querySelector('.cell-nombre')?.textContent?.trim() || '';
+            const telefono = tr.querySelector('.cell-telefono')?.textContent?.trim() || '';
+            const especialidad = tr.querySelector('.cell-especialidad')?.textContent?.trim() || '';
+
+            formMecanico.querySelector('[name="id"]').value = id;
+            formMecanico.querySelector('[name="nombre"]').value = nombre;
+            formMecanico.querySelector('[name="telefono"]').value = telefono;
+            formMecanico.querySelector('[name="especialidad"]').value = especialidad;
+
+            if (idInput) idInput.readOnly = true;
+
+            createForm.classList.remove('d-none'); hero.classList.add('d-none');
+            btnSubmitCrear.classList.add('d-none'); btnModificar.classList.remove('d-none'); btnEliminar.classList.remove('d-none');
+
+            tableBody.querySelectorAll('tr').forEach(r => r.classList.remove('table-active'));
+            tr.classList.add('table-active');
+
+            formMecanico.dataset.selectedRowIndex = Array.from(tableBody.querySelectorAll('tr')).indexOf(tr).toString();
+        });
+
+        // Modificar
+        btnModificar?.addEventListener('click', async () => {
+            const id = formMecanico.querySelector('[name="id"]').value.trim();
+            const nombre = formMecanico.querySelector('[name="nombre"]').value.trim();
+            const telefono = formMecanico.querySelector('[name="telefono"]').value.trim();
+            const especialidad = formMecanico.querySelector('[name="especialidad"]').value.trim();
+            if (!id || !nombre || !telefono) { alert('Completa los campos antes de modificar.'); return; }
+
+            const token = getToken();
+            const fd = new FormData();
+            fd.append('id', id); fd.append('nombre', nombre); fd.append('telefono', telefono); fd.append('especialidad', especialidad);
+
+            try {
+                const res = await fetch('/Mecanico/ActualizarMecanicoAjax', { method: 'POST', headers: token ? { 'RequestVerificationToken': token } : {}, body: fd });
+                if (!res.ok) { alert('Error al actualizar.'); return; }
+                const payload = await res.json();
+                if (payload?.success && payload.mecanico) {
+
+                    const m = payload.mecanico;
+                    const idx = parseInt(formMecanico.dataset.selectedRowIndex ?? '-1', 10);
+                    if (idx >= 0) {
+                        const rows = tableBody.querySelectorAll('tr'); const row = rows[idx];
+                        if (row) {
+                            row.querySelector('.cell-id').textContent = m.id;
+                            row.querySelector('.cell-nombre').textContent = m.nombre;
+                            row.querySelector('.cell-telefono').textContent = m.telefono;
+                            row.querySelector('.cell-especialidad').textContent = m.especialidad;
+                        }
+                    }
+                    formMecanico.reset(); if (idInput) idInput.readOnly = false;
+                    createForm.classList.add('d-none'); hero.classList.remove('d-none');
+                    btnSubmitCrear.classList.remove('d-none'); btnModificar.classList.add('d-none'); btnEliminar.classList.add('d-none');
+                } else alert('Actualización fallida.');
+            } catch (err) { console.error(err); alert('Error de red al actualizar.'); }
+        });
+
+        // Eliminar
+        btnEliminar?.addEventListener('click', async () => {
+            if (!confirm('¿Eliminar este mecánico?')) return;
+            const id = formMecanico.querySelector('[name="id"]').value.trim(); if (!id) return;
+            const token = getToken(); const fd = new FormData(); fd.append('id', id);
+            try {
+                const res = await fetch('/Mecanico/EliminarMecanicoAjax', { method: 'POST', headers: token ? { 'RequestVerificationToken': token } : {}, body: fd });
+                if (!res.ok) { alert('Error al eliminar.'); return; }
+                const payload = await res.json();
+                if (payload?.success) {
+                    const idx = parseInt(formMecanico.dataset.selectedRowIndex ?? '-1', 10);
+                    if (idx >= 0) { const rows = tableBody.querySelectorAll('tr'); const row = rows[idx]; if (row) row.remove(); }
+                    else { const row = Array.from(tableBody.querySelectorAll('tr')).find(r => r.querySelector('.cell-id')?.textContent.trim() === id); if (row) row.remove(); }
+                    formMecanico.reset(); if (idInput) idInput.readOnly = false;
+                    createForm.classList.add('d-none'); hero.classList.remove('d-none');
+                    btnSubmitCrear.classList.remove('d-none'); btnModificar.classList.add('d-none'); btnEliminar.classList.add('d-none');
+                } else alert('No se pudo eliminar.');
+            } catch (err) { console.error(err); alert('Error de red al eliminar.'); }
+        });
+
+        // Cancelar edición
+        btnCancelarCrear?.addEventListener('click', () => {
+            formMecanico.reset(); if (idInput) idInput.readOnly = false;
+            createForm.classList.add('d-none'); hero.classList.remove('d-none');
+            btnSubmitCrear.classList.remove('d-none'); btnModificar.classList.add('d-none'); btnEliminar.classList.add('d-none');
+            tableBody.querySelectorAll('tr').forEach(r => r.classList.remove('table-active'));
+        });
+    });
+</script>

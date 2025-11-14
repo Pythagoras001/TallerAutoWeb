@@ -1,0 +1,190 @@
+﻿@{
+    ViewData["Title"] = "Seleccione los Mecanicos a Cargo";
+
+    var IdOrden = ViewBag.IdOrden;
+    var listaMecanicosEncargados = ViewBag.MecanicosEncargados as BibTaller.Clases.EstrucPersona.Mecanico[];
+    var listaMecanicosDisponibles = ViewBag.Mecanicos as List<BibTaller.Clases.EstrucPersona.Mecanico>;
+
+	var mensaje = ViewBag.MensajeEvento;
+	var mensajeError = ViewBag.MensajeError as string;
+
+}
+
+@if (ViewBag.MensajeEvento != null)
+{
+    <div id="msg" class="alert alert-success">@ViewBag.MensajeEvento</div>
+
+    <script>
+        setTimeout(() => document.getElementById("msg")?.remove(), 3000);
+    </script>
+}
+
+@if (mensajeError != null)
+{
+    <div id="msg" class="alert alert-danger">@mensajeError</div>
+
+    <script>
+        setTimeout(() => document.getElementById("msg")?.remove(), 3000);
+    </script>
+}
+
+
+<style>
+    body {
+        background-color: #0f0f0f;
+        color: #d0d0d0;
+        font-family: "Segoe UI", sans-serif;
+        font-size: 0.97rem;
+    }
+
+    h2, h5 {
+        color: #00ff7f !important;
+        font-weight: 600;
+    }
+
+    .table, .table-bordered {
+        background-color: #181818;
+        color: #d0d0d0;
+        border: 1px solid #00ff7f33;
+        font-size: 0.98rem;
+    }
+
+    .table-success, .border-success {
+        background-color: #00ff7f13 !important;
+        color: #00ff7f !important;
+    }
+
+    .table th, .table td {
+        vertical-align: middle;
+        text-align: center;
+    }
+
+    .form-label {
+        color: #00ff7f !important;
+        font-weight: 500;
+    }
+
+    .form-select, .form-control {
+        background-color: #181818;
+        color: #d0d0d0;
+        border: 1.5px solid #00ff7f;
+        border-radius: 8px;
+        margin-bottom: 6px;
+    }
+
+    .btn-success, .btn-outline-success {
+        background-color: transparent;
+        border: 1.5px solid #00ff7f;
+        color: #00ff7f;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+        .btn-success:hover, .btn-outline-success:hover {
+            background-color: #00ff7f;
+            color: #0f0f0f;
+            box-shadow: 0 0 6px #00ff7f;
+            transform: translateY(-1px);
+        }
+
+    .btn-filtro, .btn-crear {
+        background-color: #181818;
+        border: 1.5px solid #54ffbb;
+        color: #54ffbb;
+        border-radius: 10px;
+        font-weight: 600;
+        margin-left: 1rem;
+        padding: 5px 16px;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+
+        .btn-filtro:hover, .btn-crear:hover {
+            background-color: #54ffbb;
+            color: #181818;
+            box-shadow: 0 0 6px #54ffbb;
+            transform: translateY(-1px);
+        }
+
+    .col-md-4, .col-md-8 {
+        background-color: #161616c3;
+        border-radius: 16px;
+        padding: 18px 10px 18px 10px;
+        margin-bottom: 14px;
+    }
+</style>
+
+<form asp-action="AsignarMecanicos" method="post" id="asignarMecanico">
+
+    <h2 class="text-center text-success mb-4">Mecanicos</h2>
+
+    <div class="row">
+        <!-- Izquierda: lista -->
+        <div class="col-md-4">
+            <h5 class="text-success">Lista de Mecanicos A Cargo</h5>
+
+            <table class="table table-bordered border-success mt-3">
+                <thead class="table-success text-success">
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Id</th>
+                        <th>Especialidad</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (listaMecanicosEncargados != null)
+                    {
+                        foreach (var mec in listaMecanicosEncargados)
+                        {
+                            <tr>
+                                <td>@mec.Nombre</td>
+                                <td>@mec.Id</td>
+                                <td>@mec.Especialidad</td> <!-- "C0" muestra formato moneda -->
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="2" class="text-center text-muted"></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+        </div>
+
+
+        <!-- Derecha: formulario sencillo -->
+        <div class="col-md-8">
+            <div class="mb-3">
+                <input type="hidden" name="IdOrdenAsig" value="@IdOrden" />
+
+                <label for="mecanicoId" class="form-label text-success fw-semibold">Seleccione un Mecánico</label>
+                <select id="mecanicoId" name="MecanicoId" class="form-select border-success border-2 rounded-3" required>
+                    <option value="" selected disabled>-- Seleccione un mecánico --</option>
+                    @if (listaMecanicosDisponibles != null)
+                    {
+                        foreach (var m in listaMecanicosDisponibles)
+                        {
+                            <option value="@m.Id">@m.Nombre - @m.Especialidad</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="d-flex justify-content-end">
+                <button type="submit" class="btn btn-success px-4">Asignar</button>
+
+                <a class="btn-filtro btn-crear" href="@Url.Action("Index", "Orden")">
+                    Crear
+                </a>
+
+            </div>
+
+        </div>
+    </div>
+
+</form>
+

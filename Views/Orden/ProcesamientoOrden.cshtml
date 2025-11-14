@@ -1,0 +1,353 @@
+﻿@{
+    ViewData["Title"] = "Procesar Estado de Orden";
+
+    var orden = ViewBag.Orden as BibTaller.Clases.EstrucReparcion.OrdenReparacion;
+    var mensaje = ViewBag.MensajeEvento;
+}
+
+@if (ViewBag.MensajeEvento != null)
+{
+    <div id="msg" class="alert alert-success">@ViewBag.MensajeEvento</div>
+
+    <script>
+        setTimeout(() => document.getElementById("msg")?.remove(), 3000);
+    </script>
+}
+
+
+<style>
+    body {
+        background-color: #0f0f0f;
+        color: #d0d0d0;
+        font-family: "Segoe UI", sans-serif;
+        font-size: 1rem;
+    }
+
+    .contenedor-general {
+        display: grid;
+        grid-template-columns: 200px 1fr 300px;
+        gap: 20px;
+        padding: 24px;
+        background: #161616;
+        border: 2px solid #00ff7f99;
+        border-radius: 15px;
+        box-shadow: 0 0 18px #00ff7f22;
+    }
+
+    .panel-izquierdo {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        background: #181818da;
+        border-radius: 15px;
+        padding: 12px 6px 14px 6px;
+    }
+
+    .btn-estado, .btn-volver, .btn-confirmar {
+        padding: 10px 15px;
+        border: 2px solid #00ff7f;
+        border-radius: 10px;
+        background: #181818;
+        color: #00ff7f;
+        cursor: pointer;
+        font-weight: 600;
+        transition: 0.3s;
+        font-size: 1rem;
+        margin-bottom: 2px;
+    }
+
+        .btn-estado:hover:not(:disabled),
+        .btn-confirmar:hover:not(:disabled),
+        .btn-volver:hover {
+            background: #00ff7f;
+            color: #161616;
+            box-shadow: 0 0 8px #00ff7f99;
+        }
+
+        .btn-estado:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+    .btn-volver {
+        border-color: #54ffbb;
+        color: #54ffbb;
+        margin-top: 10px;
+        background: #141414;
+    }
+
+        .btn-volver:hover {
+            background: #54ffbb;
+            color: #181818;
+        }
+
+    .panel-central {
+        border: 2px solid #00ff7f55;
+        border-radius: 15px;
+        padding: 20px 26px 20px 26px;
+        background: #181818f2;
+        box-shadow: 0 0 10px #00ff7f11;
+    }
+
+    h3, h4 {
+        color: #00ff7f;
+        font-weight: 600;
+        margin-bottom: 14px;
+    }
+
+    .detalles-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px 20px;
+        margin-bottom: 12px;
+        background: #181818;
+        border-radius: 12px;
+        padding: 10px;
+    }
+
+    .tabla-datos {
+        width: 100%;
+        border-collapse: collapse;
+        background: #141414;
+        color: #d0d0d0;
+        border-radius: 8px;
+        font-size: 0.98rem;
+        margin-bottom: 16px;
+        box-shadow: 0 0 6px #00ff7f09;
+    }
+
+        .tabla-datos th, .tabla-datos td {
+            border-bottom: 1px solid #00ff7f33;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .tabla-datos th {
+            color: #00ff7f;
+            font-weight: 500;
+            background: #00ff7f12;
+            border-bottom: 1.5px solid #00ff7f33;
+        }
+
+        .tabla-datos td {
+            color: #d0d0d0;
+        }
+
+    .panel-derecho {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #00ff7f2b;
+        border-radius: 15px;
+        background: #181818d4;
+        padding: 12px 0px;
+    }
+
+    .imagen-proceso {
+        text-align: center;
+        color: #00ff7f;
+        font-size: 1.05rem;
+        padding: 20px 10px;
+        width: 230px;
+    }
+
+    .btn-confirmar {
+        display: block;
+        margin: 18px auto 0;
+        font-size: 1.02rem;
+        font-weight: 600;
+        letter-spacing: 1px;
+        background: #181818;
+        border: 2px solid #00ff7f;
+    }
+</style>
+
+
+
+
+<div class="contenedor-general">
+    <!-- Panel Izquierdo: Estados -->
+    <div class="panel-izquierdo">
+        <button class="btn-estado" id="btnIngresado" onclick="seleccionarEstado('Reparar Vehiculo')" disabled>Reparar</button>
+        <button class="btn-estado" id="btnPendiente" onclick="seleccionarEstado('Pagar Vehiculo')" disabled>Pagar</button>
+        <button class="btn-estado" id="btnEntrega" onclick="seleccionarEstado('Entregar Vehiculo')" disabled>Entregar</button>
+        <button class="btn-estado" id="btnCompletado" onclick="seleccionarEstado('Ver Factura')" disabled>Completado</button>
+        <a class="btn-volver" href="@Url.Action("Index", "Orden")">Volver</a>
+    </div>
+
+    <!-- Panel Central: Detalles -->
+    <div class="panel-central">
+        <h3>Detalles de la Reparación</h3>
+
+        @if (orden != null)
+        {
+            <div class="detalles-grid">
+                <div><strong>Id Orden:</strong> @orden.IdOrden</div>
+                <div><strong>Estado:</strong> <span id="estadoTexto">@orden.Estado</span></div>
+                <div><strong>Placa:</strong> @orden.Reparacion.Carro.Placa</div>
+                <div><strong>Marca:</strong> @orden.Reparacion.Carro.Marca</div>
+                <div><strong>Propietario:</strong> @orden.Reparacion.Carro.Propietario.Nombre</div>
+                <div><strong>Teléfono:</strong> @orden.Reparacion.Carro.Propietario.Telefono</div>
+            </div>
+
+            <h4>Repuestos Aplicados</h4>
+            <table class="tabla-datos">
+                <thead><tr><th>Nombre</th><th>Proveedor</th></tr></thead>
+                <tbody>
+                    @foreach (var r in orden.Reparacion.RepuestosUtilizados)
+                    {
+                        <tr><td>@r.Nombre</td><td>@r.Proveedor</td></tr>
+                    }
+                </tbody>
+            </table>
+
+            <h4>Mecánicos Encargados</h4>
+            <table class="tabla-datos">
+                <thead><tr><th>Nombre</th><th>Especialidad</th></tr></thead>
+                <tbody>
+                    @foreach (var m in orden.Reparacion.MecanicosEncargados)
+                    {
+                        <tr><td>@m.Nombre</td><td>@m.Especialidad</td></tr>
+                    }
+                </tbody>
+            </table>
+
+            <!-- 🔹 Mueve el formulario AQUÍ -->
+            <form id="formEstado" method="post" action="@Url.Action("ActualizarEstado", "Orden")">
+                <input type="hidden" name="IdOrden" id="IdOrden" value="@orden.IdOrden" />
+                <input type="hidden" name="NuevoEstado" id="NuevoEstado" />
+            </form>
+        }
+        else
+        {
+            <p>No se encontró información de la orden.</p>
+        }
+
+
+        <button class="btn-confirmar" id="btnConfirmar" onclick="confirmarEstado()" disabled>Confirmar Estado</button>
+
+    </div>
+
+    <!-- Panel Derecho: Imagen -->
+    <div class="panel-derecho">
+        <div class="imagen-proceso">
+            <!--<p>Imagen ilustrativa del proceso actual en el que se encuentra</p>-->
+            <img id="imgEstado" src="~/img/servicio.png" alt="Imagen del estado" class="img-fluid rounded shadow-sm" style="max-height: 250px;">
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+    window.onload = function() {
+        actualizarTextoEstado();
+        actualizarBotones();
+        actualizarImagenEstado();
+    };
+
+
+    // Estado actual que viene desde el backend
+    let estadoActual = '@orden?.Estado' || 'Ingresado';
+
+    // Diccionario de transiciones
+    const transiciones = {
+        "Ingresado": "Pendiente Por Pago",
+        "Pendiente Por Pago": "Listo Para Entrega",
+        "Listo Para Entrega": "Completado",
+        "Completado": "Ver Factura"
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+        normalizarEstado(); // 🔹 Limpia espacios y asegura el formato correcto
+        actualizarBotones();
+        actualizarTextoEstado();
+    });
+
+    // Normaliza el texto (por si llega con espacios o formato raro)
+    function normalizarEstado() {
+        estadoActual = estadoActual.trim();
+        // Asegurar nombres consistentes
+        if (estadoActual === "ListoParaSalida") estadoActual = "Listo Para Entrega";
+        else if (estadoActual === "PendientePorPago") estadoActual = "Pendiente Por Pago";
+    }
+
+    // 🔹 Controla qué botones se activan según el estado actual
+    function actualizarBotones() {
+        // Desactivar todos
+        ["btnIngresado", "btnPendiente", "btnEntrega", "btnCompletado"].forEach(id => {
+            document.getElementById(id).disabled = true;
+        });
+
+        // Activar el que corresponda al estado actual
+        if (estadoActual === "Ingresado") {
+            document.getElementById("btnIngresado").disabled = false; // "Reparar"
+        } else if (estadoActual === "Pendiente Por Pago") {
+            document.getElementById("btnPendiente").disabled = false; // "Pagar"
+        } else if (estadoActual === "Listo Para Entrega" || estadoActual === "ListoParaSalida") {
+            document.getElementById("btnEntrega").disabled = false; // "Entregar"
+        } else if (estadoActual === "Completado") {
+        document.getElementById("btnCompletado").disabled = false;
+
+            const btn = document.getElementById("btnConfirmar");
+            btn.innerHTML = "<b>✔ Ver Factura</b>";
+
+            // 🔹 Remove old onclick (confirmarEstado) to avoid resubmitting
+            btn.onclick = function() {
+                const urlFactura = '@Url.Action("MenuFacturacion", "Facturacion")';
+                window.location.href = urlFactura; // redirect to billing
+            };
+
+
+        }
+        actualizarImagenEstado();
+
+    }
+        function actualizarImagenEstado() {
+        const img = document.getElementById("imgEstado");
+
+        const imagenes = {
+            "Ingresado": "@Url.Content("~/img/servicio.png")",
+            "Pendiente Por Pago": "@Url.Content("~/img/mecanico.png")",
+            "Listo Para Entrega": "@Url.Content("~/img/administrador.png")",
+            "Completado": "@Url.Content("~/img/notas.png")"
+        };
+
+        // Use the corresponding image or fallback
+        img.src = imagenes[estadoActual] || "@Url.Content("~/images/default.png")";
+
+
+
+        // Siempre permitir confirmar
+        document.getElementById("btnConfirmar").disabled = false;
+    }
+
+    function actualizarTextoEstado() {
+        const siguiente = transiciones[estadoActual] || estadoActual;
+        document.getElementById("estadoTexto").textContent = `${estadoActual} → ${siguiente}`;
+    }
+
+    function confirmarEstado() {
+        const siguiente = transiciones[estadoActual] || estadoActual;
+
+        if (estadoActual === "Completado") {
+            alert("La orden ya está completada. Ver Factura.");
+            return;
+        }
+
+        // Actualiza la variable local
+        estadoActual = siguiente;
+        document.getElementById("btnConfirmar").onclick = confirmarEstado;
+
+        // Actualiza la interfaz
+        actualizarBotones();
+        actualizarTextoEstado();
+
+        // Guarda el nuevo estado en el campo oculto
+        document.getElementById("NuevoEstado").value = estadoActual;
+
+        // Envía el formulario
+        document.getElementById("formEstado").submit();
+    }
+
+</script>

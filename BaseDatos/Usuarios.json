@@ -1,0 +1,47 @@
+[
+  {
+    "$type": "cliente",
+    "SaldoADeber": 0,
+    "TieneSaldo": false,
+    "Id": 11354621321,
+    "Nombre": "Miguel \u00C1ngel Puente",
+    "Telefono": 3002146546
+  },
+  {
+    "$type": "cliente",
+    "SaldoADeber": 0,
+    "TieneSaldo": false,
+    "Id": 16216565141,
+    "Nombre": "Leider Villa",
+    "Telefono": 30056456213
+  },
+  {
+    "$type": "mecanico",
+    "Especialidad": "Motores",
+    "Id": 1032165654,
+    "Nombre": "Santiago Ceballos Henao",
+    "Telefono": 3186506194
+  },
+  {
+    "$type": "mecanico",
+    "Especialidad": "Electr\u00F3nicos",
+    "Id": 123456132,
+    "Nombre": "Miguel \u00C1ngel Correa",
+    "Telefono": 3021651526
+  },
+  {
+    "$type": "admin",
+    "ClaveAcceso": "123ABCjdh",
+    "Id": 1230231030,
+    "Nombre": "Thomas G\u00F3mez",
+    "Telefono": 3054213235
+  },
+  {
+    "$type": "cliente",
+    "SaldoADeber": 167000,
+    "TieneSaldo": true,
+    "Id": 135462424,
+    "Nombre": "Daniel Villa",
+    "Telefono": 32115461
+  }
+]

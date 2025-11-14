@@ -1,0 +1,496 @@
+﻿@using System.Text.Json
+@{
+    var listaOrdenes = ViewBag.Ordenes as List<BibTaller.Clases.EstrucReparcion.OrdenReparacion>;
+    var listaClientes = ViewBag.Clientes as List<BibTaller.Clases.EstrucPersona.Cliente>;
+    var listaEstados = ViewBag.EstadosVehiculo as List<string>;
+    var ordenesJson = JsonSerializer.Serialize(listaOrdenes);
+
+}
+
+<div class="card-header bg-transparent border-0 text-center pb-3">
+    <h4 class="text-success mb-3">Procesar Órdenes de Reparación</h4>
+    <hr />
+</div>
+
+
+<div class="vista-container">
+
+    <!-- Panel Izquierdo -->
+    <div class="panel-izquierdo">
+        
+        <h5 class="text-success mb-3">Filtros de Búsqueda</h5>
+        <form asp-action="MenuFacturacion" method="get" class="mb-3">
+            <div class="row g-3 align-items-end px-3">
+                <div class="col-auto">
+                    <label for="estado" class="form-label">Estado</label>
+                    <select id="estado" name="estado" class="form-select bg-dark text-light border-light" style="width: 180px;">
+                        <option value="">-- Seleccionar --</option>
+                        <option value="Ingresado">Ingresado</option>
+                        <option value="PendientePorPago">Pendiente Por Pago</option>
+                        <option value="ListoParaSalida">Listo Para Salida</option>
+                        <option value="Completado">Completado</option>
+                    </select>
+                </div>
+
+                <div class="col-auto">
+                    <label for="clienteId" class="form-label">ID Cliente</label>
+                    <input type="text" id="clienteId" name="clienteId"
+                           class="form-control bg-dark text-light border-light"
+                           placeholder="ID cliente" style="width: 200px;" />
+                </div>
+
+                <div class="col text-end">
+                    <button type="submit" class="btn btn-filtro me-2">Aplicar Filtros</button>
+                    <a class="btn btn-crear" href="@Url.Action("Crear", "Orden")">
+                        Crear Nueva Orden
+                    </a>
+                </div>
+            </div>
+        </form>
+
+        <div class="card bg-dark text-light shadow-lg border-success mb-4">
+            <div class="card-header bg-success text-dark fw-bold">
+                Lista de Órdenes de Reparación
+            </div>
+            <table class="tabla-ordenes table-dark table-hover table-bordered mb-0">
+                <thead class="table-success text-dark">
+                    <tr>
+                        <th>ID Orden</th>
+                        <th>Estado</th>
+                        <th>Placa</th>
+                        <th>Marca</th>
+                        <th>Costo</th>
+                        <th>Propietario</th>
+                        <th>ID Prop</th>
+                        <th>Teléfono</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaOrdenesBody">
+                    @if (listaOrdenes != null && listaOrdenes.Any()) {
+                        foreach (var orden in listaOrdenes) {
+                            <tr onclick="seleccionarOrden(@orden.IdOrden, '@orden.Estado', '@orden.Reparacion.Carro.Placa', '@orden.Reparacion.Carro.Marca', @orden.Reparacion.CostoManoObra, '@orden.Reparacion.Carro.Propietario.Nombre', '@orden.Reparacion.Carro.Propietario.Id', '@orden.Reparacion.Carro.Propietario.Telefono')">
+                                <td>@orden.IdOrden</td>
+                                <td>@orden.Estado</td>
+                                <td>@orden.Reparacion.Carro.Placa</td>
+                                <td>@orden.Reparacion.Carro.Marca</td>
+                                <td>@orden.Reparacion.CostoManoObra.ToString("C")</td>
+                                <td>@orden.Reparacion.Carro.Propietario.Nombre</td>
+                                <td>@orden.Reparacion.Carro.Propietario.Id</td>
+                                <td>@orden.Reparacion.Carro.Propietario.Telefono</td>
+                            </tr>
+                        }
+                    } else {
+                        <tr>
+                            <td colspan="8" class="text-center text-muted">No hay órdenes disponibles</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Panel Derecho -->
+    <div class="panel-derecho">
+        <div class="info-orden-panel bg-dark rounded-3 p-3 shadow-sm">
+            <h3>Informacion de la Orden Seleccionada</h3>
+            <div id="infoOrden">
+                <div class="mensaje-vacio">Seleccione una orden para ver sus detalles</div>
+            </div>
+            <div class="Listas-panelRepuestosMecanicos">
+            </div>
+        </div>
+
+        <button class="btn-panel btn-procesar" id="btnProcesar" disabled onclick="procesarOrden()">Procesar Orden</button>
+    </div>
+</div>
+
+<script>
+    const ordenes = @Html.Raw(ordenesJson);
+    let ordenSeleccionada = null;
+
+    // ---- FILTRAR TABLA ----
+    document.querySelector('form').addEventListener('submit', function (event) {
+        event.preventDefault(); // prevent full page reload
+
+        const estado = document.getElementById('estado').value.trim();
+        const clienteId = document.getElementById('clienteId').value.trim().toLowerCase();
+
+        const tbody = document.getElementById('tablaOrdenesBody');
+        tbody.innerHTML = ''; // clear table
+
+        // Filter based on Estado and ClienteID
+        const filtradas = ordenes.filter(o => {
+            const matchEstado = !estado || o.Estado === estado;
+            const matchCliente = !clienteId || o.Reparacion.Carro.Propietario.Id.toString().toLowerCase().includes(clienteId);
+            return matchEstado && matchCliente;
+        });
+
+        if (filtradas.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">No hay órdenes que coincidan</td></tr>`;
+            return;
+        }
+
+        filtradas.forEach(orden => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${orden.IdOrden}</td>
+                <td>${orden.Estado}</td>
+                <td>${orden.Reparacion.Carro.Placa}</td>
+                <td>${orden.Reparacion.Carro.Marca}</td>
+                <td>${orden.Reparacion.CostoManoObra.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}</td>
+                <td>${orden.Reparacion.Carro.Propietario.Nombre}</td>
+                <td>${orden.Reparacion.Carro.Propietario.Id}</td>
+                <td>${orden.Reparacion.Carro.Propietario.Telefono}</td>
+            `;
+            row.onclick = () =>
+                seleccionarOrden(
+                    orden.IdOrden,
+                    orden.Estado,
+                    orden.Reparacion.Carro.Placa,
+                    orden.Reparacion.Carro.Marca,
+                    orden.Reparacion.CostoManoObra,
+                    orden.Reparacion.Carro.Propietario.Nombre,
+                    orden.Reparacion.Carro.Propietario.Id,
+                    orden.Reparacion.Carro.Propietario.Telefono
+                );
+            tbody.appendChild(row);
+        });
+    });
+
+    // ---- MOSTRAR ORDEN SELECCIONADA ----
+    function seleccionarOrden(idOrden, estado, placa, marca, costo, propietario, idProp, telefono) {
+        // Remover selección anterior
+        document.querySelectorAll('.tabla-ordenes tbody tr').forEach(tr => tr.classList.remove('seleccionada'));
+
+        // Marcar fila seleccionada
+        event.currentTarget.classList.add('seleccionada');
+
+        // Buscar la orden completa
+        ordenSeleccionada = ordenes.find(o => o.IdOrden === idOrden);
+
+        // Mostrar información general
+        const infoHtml = `
+        <div class="info-grid">
+            <div class="info-item"><strong>Id Orden</strong><div>${idOrden}</div></div>
+            <div class="info-item"><strong>Estado</strong><div>${estado}</div></div>
+            <div class="info-item"><strong>Placa</strong><div>${placa}</div></div>
+            <div class="info-item"><strong>Marca</strong><div>${marca}</div></div>
+            <div class="info-item"><strong>Propietario</strong><div>${propietario}</div></div>
+            <div class="info-item"><strong>Teléfono</strong><div>${telefono}</div></div>
+        </div>`;
+
+        document.getElementById('infoOrden').innerHTML = infoHtml;
+
+        // Mostrar repuestos y mecánicos
+        let htmlTablas = "";
+
+        if (ordenSeleccionada?.Reparacion?.RepuestosUtilizados?.length) {
+            htmlTablas += `
+                <div class="info-item mt-4"><strong>Repuestos Utilizados</strong></div>
+                <table class="tabla-simple mt-2">
+                    <thead><tr><th>Nombre</th><th>Proveedor</th></tr></thead>
+                    <tbody>
+                        ${ordenSeleccionada.Reparacion.RepuestosUtilizados.map(r =>
+                            `<tr><td>${r.Nombre}</td><td>${r.Proveedor}</td></tr>`
+                        ).join('')}
+                    </tbody>
+                </table>`;
+        }
+
+        if (ordenSeleccionada?.Reparacion?.MecanicosEncargados?.length) {
+            htmlTablas += `
+                <div class="info-item mt-2"><strong>Mecánicos Encargados</strong></div>
+                <table class="tabla-simple mt-2">
+                    <thead><tr><th>Nombre</th><th>Especialidad</th></tr></thead>
+                    <tbody>
+                        ${ordenSeleccionada.Reparacion.MecanicosEncargados.map(m =>
+                            `<tr><td>${m.Nombre}</td><td>${m.Especialidad}</td></tr>`
+                        ).join('')}
+                    </tbody>
+                </table>`;
+        }
+
+        document.querySelector('.Listas-panelRepuestosMecanicos').innerHTML = htmlTablas;
+        document.getElementById('btnProcesar').disabled = false;
+    }
+
+    // ---- PROCESAR ORDEN ----
+    function procesarOrden() {
+        if (!ordenSeleccionada) {
+            alert("Seleccione una orden primero.");
+            return;
+        }
+        const idOrden = ordenSeleccionada.IdOrden;
+        window.location.href = '@Url.Action("ProcesarOrden", "Orden")' + '?id=' + idOrden;
+    }
+</script>
+
+
+
+
+
+
+<style>
+
+    body {
+        background-color: #0f0f0f;
+        color: #d0d0d0;
+        font-family: "Segoe UI", sans-serif;
+        font-size: 0.93rem;
+    }
+
+    .vista-container {
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: 20px;
+        padding: 20px;
+        height: calc(100vh - 100px);
+    }
+
+    .panel-izquierdo {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .botones-filtros {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .btn-filtro {
+        background-color: transparent;
+        border: 1.5px solid #00ff7f;
+        border-radius: 10px;
+        color: #00ff7f;
+        padding: 6px 14px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+        .btn-filtro:hover {
+            background-color: #333;
+            color: #fff;
+            border-color: #00ff7f;
+            box-shadow: 0 0 8px #00ff7f55;
+        }
+
+    .btn-crear {
+        background-color: transparent;
+        border: 1.5px solid #00ff7f;
+        border-radius: 10px;
+        color: #00ff7f;
+        padding: 6px 14px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+        .btn-crear:hover {
+            background-color: #00ff7f;
+            color: #0f0f0f;
+            box-shadow: 0 0 8px #00ff7f;
+            transform: translateY(-1px);
+        }
+
+    .lista-ordenes-container {
+        border: 1px solid #00ff7f33;
+        overflow-x: auto;
+    }
+
+        .lista-ordenes-container h3 {
+            color: #28a745;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+    .tabla-ordenes {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .tabla-ordenes thead th {
+            background-color: #d1e7dd;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+            font-size: 14px;
+        }
+
+        .tabla-ordenes tbody tr {
+            border-bottom: 1px solid #dee2e6;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+            .tabla-ordenes tbody tr:hover {
+                background-color: #00ff7f55;
+            }
+
+            .tabla-ordenes tbody tr.seleccionada {
+                background-color: #28a745;
+            }
+
+        .tabla-ordenes tbody td {
+            padding: 10px 8px;
+            font-size: 14px;
+        }
+
+    .tabla-simple {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 5px 0;
+        margin-top: 10px;
+        table-layout: fixed;
+    }
+
+        .tabla-simple thead th {
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 700;
+            border-bottom: none;
+            width: 50%;
+        }
+
+        .tabla-simple tbody td {
+            padding: 12px 15px;
+            border-bottom: none;
+            width: 50%;
+        }
+
+        .tabla-simple tbody tr td {
+            margin-bottom: 10px;
+        }
+
+
+
+    .panel-derecho {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .info-orden-panel {
+        border: 1px solid #00ff7f33;
+        overflow-x: auto;
+        border-radius: 12px;
+        padding: 20px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+        .info-orden-panel h3 {
+            color: #28a745;
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+    .info-detalle {
+        margin-bottom: 10px;
+    }
+
+        .info-detalle strong {
+            display: block;
+            color: #28a745;
+            margin-bottom: 5px;
+        }
+
+    .botones-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: auto;
+    }
+
+    .btn-panel {
+        padding: 12px;
+        background-color: white;
+        border: 2px solid #28a745;
+        color: #28a745;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+
+        .btn-panel:hover:not(:disabled) {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-panel:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+    .btn-procesar {
+        background-color: #28a745;
+        color: white;
+        padding: 15px;
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .mensaje-vacio {
+        text-align: center;
+        color: #6c757d;
+        padding: 40px 20px;
+        font-style: italic;
+    }
+
+    .titulo-principal {
+        color: #28a745;
+        margin-bottom: 0;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* Dos columnas iguales */
+        gap: 15px; /* Espacio entre elementos */
+    }
+
+    .info-item strong {
+        display: block;
+        color: #28a745;
+        margin-bottom: 5px;
+        font-weight: 600;
+    }
+
+    .info-detalle strong {
+        display: block;
+        color: #28a745;
+        margin-bottom: 5px;
+        font-weight: 700;
+    }
+
+    .info-detalle {
+        margin-bottom: 15px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .info-detalle-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+        .info-detalle-item strong {
+            color: #28a745;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+    .info-orden-panel h4 {
+        color: #333;
+        font-size: 18px;
+        font-weight: 700;
+        margin-top: 20px;
+        margin-bottom: 10px;
+    }
+</style>

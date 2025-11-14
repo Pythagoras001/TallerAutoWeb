@@ -1,0 +1,619 @@
+﻿@model IEnumerable<BibTaller.Clases.EstrucPersona.Persona>
+
+@{
+    ViewData["Title"] = "Lista de Clientes";
+
+    var clientesList = Model.OfType<BibTaller.Clases.EstrucPersona.Cliente>().ToList();
+    var nombres = clientesList.Select(c => c.Nombre).Distinct();
+    var telefonos = clientesList.Select(c => c.Telefono).Distinct();
+    var ids = clientesList.Select(c => c.Id).Distinct();
+
+    var mensajeEvento = ViewBag.MensajeEvento;
+}
+<div class="container mt-4">
+    <h2 class="text-light mb-4">Lista de Clientes</h2>
+    <div id="mensaje"></div>
+
+    @if (!string.IsNullOrEmpty(mensajeEvento))
+    {
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <strong>@mensajeEvento</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+        </div>
+    }
+
+    <div class="row">
+        <!-- LEFT COLUMN: Tabla de clientes (presentación) -->
+        <div class="col-md-7">
+            <div class="card bg-dark text-light shadow-lg border-success">
+                <div class="card-header bg-success text-dark fw-bold">
+                    Clientes Registrados
+                </div>
+                <div class="card-body">
+                    <table class="table table-dark table-hover table-bordered mb-0">
+                        <thead class="table-success text-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Teléfono</th>
+                                <th>Saldo</th>
+                                <th>Crédito</th>
+                            </tr>
+                        </thead>
+
+                        <!-- SECTION: Cuerpo de la tabla (cada fila contiene clases usadas por JS: .cell-*) -->
+                        <tbody id="clientesTableBody">
+                            @foreach (var cliente in clientesList)
+                            {
+                                <tr>
+                                    <td class="cell-id">@cliente.Id</td>
+                                    <td class="cell-nombre">@cliente.Nombre</td>
+                                    <td class="cell-telefono">@cliente.Telefono</td>
+                                    <td class="cell-saldo">@cliente.SaldoADeber</td>
+                                    <td class="cell-credito">@(@cliente.TieneSaldo ? "Habilitado" : "No habilitado")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Controles (crear / buscar) y formularios -->
+        <div class="col-md-5 d-flex flex-column align-items-center justify-content-start">
+            <!-- Botones principales -->
+            <div class="d-flex gap-3 mb-4">
+                <button type="button" id="btnCrear" class="btn btn-success btn-lg shadow">
+                    <i class="bi bi-person-plus"></i> Crear Nuevo Usuario
+                </button>
+                <button type="button" id="btnBuscar" class="btn btn-outline-light btn-lg shadow">
+                    <i class="bi bi-search"></i> Buscar Cliente
+                </button>
+            </div>
+
+            <!-- Hero visual (imagen) -->
+            <div id="hero" class="card border-success hero-card w-100 mb-3"></div>
+
+            <!-- SECTION: Formulario CREAR / EDITAR
+                 - `formCrear` se usa tanto para crear como para editar.
+                 - Botones: Crear (por defecto), Modificar/Eliminar (en modo edición).
+                 - `@Html.AntiForgeryToken()` necesario para posts AJAX seguros.
+            -->
+            <div id="createForm" class="card border-success create-form w-100 mb-3 d-none">
+                <div class="card-body">
+                    <form id="formCrear" method="post" action="/User/CrearNuevoUsuarioAjax" novalidate>
+                        @Html.AntiForgeryToken()
+                        <div class="mb-3 row align-items-center">
+                            <label class="col-5 col-form-label text-white">ID</label>
+                            <div class="col-7">
+                                <input name="id" id="inputId" type="number" min="0" step="1" class="form-control bg-dark text-light border-light" placeholder="Ingrese" required />
+                            </div>
+                        </div>
+
+                        <div class="mb-3 row align-items-center">
+                            <label class="col-5 col-form-label text-white">Nombre</label>
+                            <div class="col-7">
+                                <input name="nombre" id="inputNombre" type="text" class="form-control bg-dark text-light border-light" placeholder="Ingrese" required />
+                            </div>
+                        </div>
+
+                        <div class="mb-3 row align-items-center">
+                            <label class="col-5 col-form-label text-white">Teléfono</label>
+                            <div class="col-7">
+                                <input name="telefono" id="inputTelefono" type="number" min="0" step="1" class="form-control bg-dark text-light border-light" placeholder="Ingrese" required />
+                            </div>
+                        </div>
+
+                        <div class="mb-3 row align-items-center">
+                            <label class="col-5 col-form-label text-white">Habilitar Crédito</label>
+                            <div class="col-7 d-flex">
+                                <input type="hidden" name="tieneCredito" value="false" />
+                                <input name="tieneCredito" id="inputTieneCredito" type="checkbox" value="true" class="form-check-input ms-2" />
+                            </div>
+                        </div>
+
+                        <!-- SECTION: Botones de acción del formulario
+                             - Crear: crea nuevo registro vía AJAX.
+                             - Modificar / Eliminar: sólo visibles al seleccionar una fila.
+                             - Cancelar: cierra el formulario.
+                        -->
+                        <div class="d-flex gap-2">
+                            <button type="button" id="btnSubmitCrear" class="btn btn-success w-100">Crear</button>
+                            <button type="button" id="btnModificar" class="btn btn-warning w-100 d-none">Modificar</button>
+                            <button type="button" id="btnEliminar" class="btn btn-danger w-100 d-none">Eliminar</button>
+                            <button type="button" id="btnCancelarCrear" class="btn btn-outline-light w-100">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- SECTION: Formulario BUSCAR (autocompletes con datalist) -->
+            <div id="searchForm" class="card border-success create-form w-100 mb-3 d-none">
+                <div class="card-body">
+                    <div class="mb-3 row align-items-center">
+                        <label class="col-5 col-form-label text-white">ID</label>
+                        <div class="col-7">
+                            <input id="idSearch" list="idsList" class="form-control bg-dark text-light border-light" placeholder="ID o seleccionar" />
+                            <datalist id="idsList">
+                                @foreach (var id in ids)
+                                {
+                                    <option value="@id" />
+                                }
+                            </datalist>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row align-items-center">
+                        <label class="col-5 col-form-label text-white">Nombre</label>
+                        <div class="col-7">
+                            <input id="nameSearch" list="namesList" class="form-control bg-dark text-light border-light" placeholder="Nombre o seleccionar" />
+                            <datalist id="namesList">
+                                @foreach (var n in nombres)
+                                {
+                                    <option value="@n" />
+                                }
+                            </datalist>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row align-items-center">
+                        <label class="col-5 col-form-label text-white">Teléfono</label>
+                        <div class="col-7">
+                            <input id="phoneSearch" list="phonesList" class="form-control bg-dark text-light border-light" placeholder="Teléfono o seleccionar" />
+                            <datalist id="phonesList">
+                                @foreach (var t in telefonos)
+                                {
+                                    <option value="@t" />
+                                }
+                            </datalist>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="button" id="btnDoSearch" class="btn btn-success w-100">Buscar</button>
+                        <button type="button" id="btnClearSearch" class="btn btn-outline-light w-100">Mostrar todo</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a asp-action="Index" class="btn btn-outline-light">Volver</a>
+    </div>
+</div>
+
+<!-- SECTION: Estilos específicos (hero, formularios, responsive) -->
+<style>
+    body {
+        background-color: #121212;
+    }
+
+    /* Hero (imagen de la derecha) */
+    .hero-card {
+        position: relative;
+        overflow: hidden;
+        border-radius: 0.5rem;
+        min-height: 180px;
+        aspect-ratio: 16 / 9;
+        background-color: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Imagen aplicada sólo a #hero */
+    #hero {
+        background-image: url('@Url.Content("~/img/FondoInterfazClientes.png")');
+        background-size: contain;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    /* Form-styling: fondo oscuro y entradas opacas para evitar transparencias no deseadas */
+    .create-form {
+        background-image: none !important;
+        background-color: rgba(18,18,18,0.98);
+    }
+
+        .create-form .form-control, .create-form .form-select {
+            background-color: #1f1f1f;
+            color: #e9ecef;
+            border-radius: 0.6rem;
+            border-width: 2px;
+        }
+
+    /* Apariencia para inputs readonly (mantener legible y mostrar cursor no-editable) */
+    .form-control[readonly] {
+        background-color: #2b2b2b;
+        opacity: 1;
+        cursor: not-allowed;
+    }
+
+    .d-none {
+        display: none !important;
+    }
+
+    /* Responsive: media queries (escapa para Razor con @@ media en vistas) */
+    @@media (max-width: 576px) {
+        .hero-card, .create-form {
+            aspect-ratio: auto;
+            height: 220px;
+        }
+    }
+</style>
+
+
+<script>
+    // Datos serializados disponibles en cliente para autocompletar y búsqueda rápida
+    const clients = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(clientesList.Select(c => new { id = c.Id.ToString(), nombre = c.Nombre, telefono = c.Telefono.ToString() })));
+
+    // Inicialización principal: listeners y comportamientos UI
+    document.addEventListener('DOMContentLoaded', () => {
+        /* --- SELECTORES DOM --- */
+        const btnCrear = document.getElementById('btnCrear');
+        const btnBuscar = document.getElementById('btnBuscar');
+        const btnCancelarCrear = document.getElementById('btnCancelarCrear');
+        const btnDoSearch = document.getElementById('btnDoSearch');
+        const btnClearSearch = document.getElementById('btnClearSearch');
+        const btnSubmitCrear = document.getElementById('btnSubmitCrear');
+
+        const hero = document.getElementById('hero');
+        const createForm = document.getElementById('createForm');
+        const searchForm = document.getElementById('searchForm');
+        const formCrear = document.getElementById('formCrear');
+        const tableBody = document.getElementById('clientesTableBody');
+
+        const idSearch = document.getElementById('idSearch');
+        const nameSearch = document.getElementById('nameSearch');
+        const phoneSearch = document.getElementById('phoneSearch');
+
+        // inputId referencia para controlar readonly según modo (crear vs editar)
+        const idInput = document.getElementById('inputId');
+
+        /* --- UI TOGGLING: Mostrar/ocultar formularios y hero --- */
+        btnCrear?.addEventListener('click', () => {
+            hero.classList.add('d-none');
+            searchForm.classList.add('d-none');
+            createForm.classList.toggle('d-none');
+            if (!createForm.classList.contains('d-none')) {
+                createForm.querySelector('input, select, textarea, button')?.focus();
+            }
+            // En modo crear permitir editar ID
+            if (idInput) idInput.readOnly = false;
+        });
+
+        btnBuscar?.addEventListener('click', () => {
+            hero.classList.add('d-none');
+            createForm.classList.add('d-none');
+            searchForm.classList.toggle('d-none');
+            if (!searchForm.classList.contains('d-none')) {
+                nameSearch.focus();
+            } else {
+                hero.classList.remove('d-none');
+                filterTable('', '', '');
+            }
+        });
+
+        btnCancelarCrear?.addEventListener('click', () => {
+            createForm.classList.add('d-none');
+            hero.classList.remove('d-none');
+            formCrear.reset();
+            // restaurar edición del ID al cancelar
+            if (idInput) idInput.readOnly = false;
+        });
+
+        /* --- CREAR: envío AJAX controlado (btnSubmitCrear) --- */
+        btnSubmitCrear?.addEventListener('click', async () => {
+            const idVal = formCrear.querySelector('[name="id"]').value.trim();
+            const nombreVal = formCrear.querySelector('[name="nombre"]').value.trim();
+            const telefonoVal = formCrear.querySelector('[name="telefono"]').value.trim();
+
+            if (!idVal || !nombreVal || !telefonoVal) {
+                mostrarMensaje('Completa ID, Nombre y Teléfono antes de crear.', 'danger');
+                return;
+            }
+
+            const token = formCrear.querySelector('input[name="__RequestVerificationToken"]')?.value || null;
+            const formData = new FormData(formCrear);
+
+            try {
+                const res = await fetch(formCrear.action, {
+                    method: 'POST',
+                    headers: token ? { 'RequestVerificationToken': token } : {},
+                    body: formData
+                });
+
+                if (!res.ok) throw new Error('Error en la respuesta del servidor.');
+
+                const payload = await res.json();
+
+                // ✅ Mostrar mensaje de éxito o error
+                if (payload.success) {
+                    mostrarMensaje(payload.mensajeEvento || 'Cliente creado correctamente.', 'success');
+
+                    const c = payload.cliente;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="cell-id">${c.id}</td>
+                        <td class="cell-nombre">${c.nombre}</td>
+                        <td class="cell-telefono">${c.telefono}</td>
+                        <td class="cell-saldo">${c.saldo ?? 0}</td>
+                        <td class="cell-credito">${c.tieneSaldo ? 'Habilitado' : 'No habilitado'}</td>
+                    `;
+                    tableBody.appendChild(tr);
+
+                    clients.push({ id: c.id.toString(), nombre: c.nombre, telefono: c.telefono.toString() });
+
+                    formCrear.reset();
+                    if (idInput) idInput.readOnly = false;
+                    createForm.classList.add('d-none');
+                    hero.classList.remove('d-none');
+                    
+                } else {
+                    mostrarMensaje(payload.mensajeError || 'No se pudo crear el cliente.', 'danger');
+                }
+
+            } catch (err) {
+                console.error(err);
+                mostrarMensaje('Error al conectar con el servidor.', 'danger');
+            }
+        });
+
+
+        /* --- AUTOCOMPLETE / SINCRONIZACIÓN ENTRE CAMPOS DE BÚSQUEDA --- */
+        nameSearch?.addEventListener('input', () => {
+            const v = nameSearch.value.trim();
+            if (!v) return;
+            const m = clients.find(c => c.nombre === v);
+            if (m) { idSearch.value = m.id; phoneSearch.value = m.telefono; }
+        });
+        idSearch?.addEventListener('input', () => {
+            const v = idSearch.value.trim();
+            if (!v) return;
+            const m = clients.find(c => c.id === v);
+            if (m) { nameSearch.value = m.nombre; phoneSearch.value = m.telefono; }
+        });
+        phoneSearch?.addEventListener('input', () => {
+            const v = phoneSearch.value.trim();
+            if (!v) return;
+            const m = clients.find(c => c.telefono === v);
+            if (m) { nameSearch.value = m.nombre; idSearch.value = m.id; }
+        });
+
+        /* --- FILTRADO LOCAL DE LA TABLA --- */
+        btnDoSearch?.addEventListener('click', () => {
+            const id = (idSearch.value || '').trim();
+            const name = (nameSearch.value || '').trim().toLowerCase();
+            const phone = (phoneSearch.value || '').trim();
+
+            filterTable(id, name, phone);
+        });
+
+        btnClearSearch?.addEventListener('click', () => {
+            idSearch.value = '';
+            nameSearch.value = '';
+            phoneSearch.value = '';
+            filterTable('', '', '');
+            searchForm.classList.add('d-none');
+            hero.classList.remove('d-none');
+        });
+
+        function filterTable(id, name, phone) {
+            const rows = Array.from(tableBody.querySelectorAll('tr'));
+            rows.forEach(row => {
+                const cellId = row.querySelector('.cell-id')?.textContent?.trim() || '';
+                const cellName = (row.querySelector('.cell-nombre')?.textContent || '').trim().toLowerCase();
+                const cellPhone = row.querySelector('.cell-telefono')?.textContent?.trim() || '';
+
+                let visible = true;
+                if (id) visible = visible && cellId.includes(id);
+                if (name) visible = visible && cellName.includes(name);
+                if (phone) visible = visible && cellPhone.includes(phone);
+
+                row.style.display = visible ? '' : 'none';
+            });
+        }
+
+        function mostrarMensaje(texto, tipo = 'info') {
+            const contenedor = document.getElementById('mensaje');
+            if (!contenedor) return;
+
+            contenedor.innerHTML = `
+                <div class="alert alert-${tipo} alert-dismissible fade show" role="alert">
+                    <strong>${texto}</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                </div>`;
+
+            // ⏱️ Eliminar automáticamente después de 3 segundos
+            setTimeout(() => {
+                const alerta = contenedor.querySelector('.alert');
+                if (alerta) {
+                    alerta.classList.remove('show');
+                    alerta.classList.add('fade');
+                    setTimeout(() => alerta.remove(), 500);
+                }
+            }, 3000);
+        }
+
+    });
+</script>
+
+<!-- SECTION: Selección de fila, edición y eliminación via AJAX -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const tableBody = document.getElementById('clientesTableBody');
+        const formCrear = document.getElementById('formCrear');
+        const createForm = document.getElementById('createForm');
+        const hero = document.getElementById('hero');
+
+        const btnSubmitCrear = document.getElementById('btnSubmitCrear');
+        const btnModificar = document.getElementById('btnModificar');
+        const btnEliminar = document.getElementById('btnEliminar');
+        const btnCancelarCrear = document.getElementById('btnCancelarCrear');
+
+        // referencia al input ID para controlar readonly en modo edición
+        const idInput = document.getElementById('inputId');
+        const TieneCredito = document.getElementById('inputTieneCredito');
+
+        // Helper: obtiene token antiforgery desde el formulario
+        function getToken() {
+            const i = formCrear.querySelector('input[name="__RequestVerificationToken"]');
+            return i ? i.value : null;
+        }
+
+        /* --- Delegación: al hacer click en una fila -> rellenar formulario en modo edición --- */
+        tableBody.addEventListener('click', (e) => {
+            const tr = e.target.closest('tr');
+            if (!tr) return;
+
+            const id = tr.querySelector('.cell-id')?.textContent?.trim() || '';
+            const nombre = tr.querySelector('.cell-nombre')?.textContent?.trim() || '';
+            const telefono = tr.querySelector('.cell-telefono')?.textContent?.trim() || '';
+            const creditoText = tr.querySelector('.cell-credito')?.textContent?.trim() || '';
+            const tieneCredito = creditoText.toLowerCase().includes('habilitado');
+
+            // Rellenar inputs del formulario con los datos de la fila seleccionada
+            formCrear.querySelector('[name="id"]').value = id;
+            formCrear.querySelector('[name="nombre"]').value = nombre;
+            formCrear.querySelector('[name="telefono"]').value = telefono;
+            const chk = formCrear.querySelector('[name="tieneCredito"]');
+            if (chk) chk.checked = tieneCredito;
+
+
+            // bloquear edición del ID en modo edición
+            if (idInput) idInput.readOnly = true;
+            TieneCredito.disabled = true;
+
+            // Mostrar formulario (modo edición) y botones adecuados
+            createForm.classList.remove('d-none');
+            hero.classList.add('d-none');
+
+            btnSubmitCrear.classList.add('d-none');
+            btnModificar.classList.remove('d-none');
+            btnEliminar.classList.remove('d-none');
+
+            tableBody.querySelectorAll('tr').forEach(r => r.classList.remove('table-active'));
+            tr.classList.add('table-active');
+
+            formCrear.dataset.selectedRowIndex = Array.from(tableBody.querySelectorAll('tr')).indexOf(tr).toString();
+        });
+
+        /* --- Modificar cliente via AJAX --- */
+        btnModificar?.addEventListener('click', async () => {
+            const id = formCrear.querySelector('[name="id"]').value.trim();
+            const nombre = formCrear.querySelector('[name="nombre"]').value.trim();
+            const telefono = formCrear.querySelector('[name="telefono"]').value.trim();
+            const tieneCredito = !!formCrear.querySelector('[name="tieneCredito"]').checked;
+
+            if (!id || !nombre || !telefono) { alert('Completa los campos antes de modificar.'); return; }
+
+            const token = getToken();
+            const fd = new FormData();
+            fd.append('id', id);
+            fd.append('nombre', nombre);
+            fd.append('telefono', telefono);
+            fd.append('tieneCredito', tieneCredito ? 'true' : 'false');
+
+            try {
+                const res = await fetch('/User/ActualizarClienteAjax', {
+                    method: 'POST',
+                    headers: token ? { 'RequestVerificationToken': token } : {},
+                    body: fd
+                });
+                if (!res.ok) { alert('Error al actualizar.'); return; }
+                const payload = await res.json();
+                if (payload?.success && payload.cliente) {
+                    const c = payload.cliente;
+                    const idx = parseInt(formCrear.dataset.selectedRowIndex ?? '-1', 10);
+                    if (idx >= 0) {
+                        const rows = tableBody.querySelectorAll('tr');
+                        const row = rows[idx];
+                        if (row) {
+                            row.querySelector('.cell-id').textContent = c.id;
+                            row.querySelector('.cell-nombre').textContent = c.nombre;
+                            row.querySelector('.cell-telefono').textContent = c.telefono;
+                            row.querySelector('.cell-saldo').textContent = c.saldo ?? 0;
+                            row.querySelector('.cell-credito').textContent = c.tieneSaldo ? 'Habilitado' : 'No habilitado';
+                        }
+                    }
+                    formCrear.reset();
+                    // permitir edición de ID para siguientes operaciones
+                    if (idInput) idInput.readOnly = false;
+                    TieneCredito.disabled = false;
+                    TieneCredito.d
+                    createForm.classList.add('d-none');
+                    hero.classList.remove('d-none');
+                    btnSubmitCrear.classList.remove('d-none');
+                    btnModificar.classList.add('d-none');
+                    btnEliminar.classList.add('d-none');
+                    tableBody.querySelectorAll('tr').forEach(r => r.classList.remove('table-active'));
+                } else {
+                    alert('Actualización fallida.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error de red al actualizar.');
+            }
+        });
+
+        /* --- Eliminar cliente via AJAX --- */
+        btnEliminar?.addEventListener('click', async () => {
+            if (!confirm('¿Eliminar este cliente?')) return;
+            const id = formCrear.querySelector('[name="id"]').value.trim();
+            if (!id) return;
+
+            const token = getToken();
+            const fd = new FormData();
+            fd.append('id', id);
+
+            try {
+                const res = await fetch('/User/EliminarClienteAjax', {
+                    method: 'POST',
+                    headers: token ? { 'RequestVerificationToken': token } : {},
+                    body: fd
+                });
+                if (!res.ok) { alert('Error al eliminar.'); return; }
+                const payload = await res.json();
+                if (payload?.success) {
+                    const idx = parseInt(formCrear.dataset.selectedRowIndex ?? '-1', 10);
+                    if (idx >= 0) {
+                        const rows = tableBody.querySelectorAll('tr');
+                        const row = rows[idx];
+                        if (row) row.remove();
+                    } else {
+                        const row = Array.from(tableBody.querySelectorAll('tr')).find(r => r.querySelector('.cell-id')?.textContent.trim() === id);
+                        if (row) row.remove();
+                    }
+                    formCrear.reset();
+                    // restaurar edición del ID tras eliminar
+                    if (idInput) idInput.readOnly = false;
+                    createForm.classList.add('d-none');
+                    hero.classList.remove('d-none');
+                    btnSubmitCrear.classList.remove('d-none');
+                    btnModificar.classList.add('d-none');
+                    btnEliminar.classList.add('d-none');
+                } else {
+                    alert('No se pudo eliminar.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error de red al eliminar.');
+            }
+        });
+
+        /* --- Cancelar edición: restaurar estado inicial --- */
+        btnCancelarCrear?.addEventListener('click', () => {
+            formCrear.reset();
+            // permitir editar ID al cancelar
+            if (idInput) idInput.readOnly = false;
+            createForm.classList.add('d-none');
+            hero.classList.remove('d-none');
+            btnSubmitCrear.classList.remove('d-none');
+            btnModificar.classList.add('d-none');
+            btnEliminar.classList.add('d-none');
+            tableBody.querySelectorAll('tr').forEach(r => r.classList.remove('table-active'));
+        });
+    });
+</script>

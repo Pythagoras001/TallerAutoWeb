@@ -1,0 +1,179 @@
+﻿@{
+    ViewData["Title"] = "Ingrese los Repuestos A Emplear";
+
+    var IdOrden = ViewBag.IdOrden;
+    var listaRepuestos = ViewBag.RespuestosAplicados as BibTaller.Clases.EstrucReparcion.Repuesto[];
+    var mensaje = ViewBag.MensajeEvento;
+	var mensajeError = ViewBag.MensajeError as string;
+
+}
+
+@if (ViewBag.MensajeEvento != null)
+{
+    <div id="msg" class="alert alert-success">@ViewBag.MensajeEvento</div>
+
+    <script>
+        setTimeout(() => document.getElementById("msg")?.remove(), 3000);
+    </script>
+}
+
+@if (mensajeError != null)
+{
+    <div id="msg" class="alert alert-danger">@mensajeError</div>
+
+    <script>
+        setTimeout(() => document.getElementById("msg")?.remove(), 3000);
+    </script>
+}
+
+
+<style>
+    body {
+        background-color: #0f0f0f;
+        color: #d0d0d0;
+        font-family: "Segoe UI", sans-serif;
+        font-size: 0.98rem;
+    }
+
+    h2, h5 {
+        color: #00ff7f !important;
+        font-weight: 600;
+    }
+
+    .table, .table-bordered {
+        background-color: #181818;
+        color: #d0d0d0;
+        border: 1px solid #00ff7f33;
+        font-size: 1.01rem;
+    }
+
+    .table-success, .border-success {
+        background-color: #00ff7f13 !important;
+        color: #00ff7f !important;
+    }
+
+    .table th, .table td {
+        vertical-align: middle;
+        text-align: center;
+    }
+
+    .form-label {
+        color: #00ff7f !important;
+        font-weight: 500;
+    }
+
+    .form-select, .form-control {
+        background-color: #181818;
+        color: #d0d0d0;
+        border: 1.5px solid #00ff7f;
+        border-radius: 8px;
+        margin-bottom: 6px;
+    }
+
+    .btn-success, .btn-outline-success {
+        background-color: transparent;
+        border: 1.5px solid #00ff7f;
+        color: #00ff7f;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+        .btn-success:hover, .btn-outline-success:hover {
+            background-color: #00ff7f;
+            color: #0f0f0f;
+            box-shadow: 0 0 6px #00ff7f;
+            transform: translateY(-1px);
+        }
+
+    .col-md-4, .col-md-8 {
+        background-color: #161616e2;
+        border-radius: 16px;
+        padding: 18px 10px;
+        margin-bottom: 14px;
+    }
+</style>
+
+
+<form asp-action="Asignar" method="post" id="asignarRepuesto">
+
+    <h2 class="text-center text-success mb-4">Repuestos</h2>
+
+    <div class="row">
+        <!-- Izquierda: lista -->
+        <div class="col-md-4">
+            <h5 class="text-success">Lista de repuestos</h5>
+
+            <table class="table table-bordered border-success mt-3">
+                <thead class="table-success text-success">
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Proveedor</th>
+                        <th>Costo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (listaRepuestos != null)
+                    {
+                        foreach (var rep in listaRepuestos)
+                        {
+                            <tr>
+                                <td>@rep.Nombre</td>
+                                <td>@rep.Proveedor</td>
+                                <td>@rep.Costo.ToString("C0")</td> <!-- "C0" muestra formato moneda -->
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="2" class="text-center text-muted"></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+        </div>
+
+
+        <!-- Derecha: formulario sencillo -->
+        <div class="col-md-8">
+            <div class="border border-2 border-success rounded p-4">
+                <h5 class="text-center text-success mb-3">Ingrese El Repuesto a Emplear</h5>
+
+                <input type="hidden" name="Id" value="@IdOrden" />
+
+                <div class="mb-3">
+                    <label for="Nombre" class="form-label text-success">Nombre</label>
+                    <input id="Nombre" name="Nombre" class="form-control border-success rounded" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="Proveedor" class="form-label text-success">Proveedor</label>
+                    <input id="Proveedor" name="Proveedor" class="form-control border-success rounded" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="Costo" class="form-label text-success">Costo</label>
+                    <input id="Costo" name="Costo" type="number" step="0.01" min="0" class="form-control border-success rounded" />
+                </div>
+
+                <div class="mt-4 d-flex gap-3 justify-content-end">
+                    <button type="submit" class="btn btn-success border-2 rounded-3 px-5">Crear Respuesto</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</form>
+
+<div class="d-flex justify-content-end mt-3">
+    <a asp-action="AsigMecanicos"
+       asp-controller="Orden"
+       asp-route-id="@ViewBag.IdOrden"
+       class="btn btn-outline-success">
+        Siguiente
+    </a>
+</div>
+
