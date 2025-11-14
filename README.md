@@ -1,4 +1,4 @@
-# 🔧 Taller Mecánico MVC — 23 mayo de 2025
+# 🔧 Taller Mecánico MVC — 14 Noviembre de 2025
 
 **Taller Mecánico MVC** es un proyecto académico cuyo objetivo es desarrollar una **plataforma web para administrar un taller de mecánica automotriz**, permitiendo gestionar clientes, mecánicos, repuestos y órdenes de reparación de forma clara e intuitiva.
 
