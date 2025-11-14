@@ -1,104 +1,89 @@
-*🔧 Taller Mecánico MVC — 23 mayo de 2025
+# 🔧 Taller Mecánico MVC — 23 mayo de 2025
 
-Taller Mecánico MVC es un proyecto académico desarrollado como parte de un trabajo universitario.
-El objetivo fue construir una plataforma web para la gestión integral de un taller mecánico, permitiendo administrar clientes, mecánicos, órdenes de reparación y repuestos de manera organizada e intuitiva.
+**Taller Mecánico MVC** es un proyecto académico cuyo objetivo es desarrollar una **plataforma web para administrar un taller de mecánica automotriz**, permitiendo gestionar clientes, mecánicos, repuestos y órdenes de reparación de forma clara e intuitiva.
 
----
-
-*🧩 Descripción general
-
-La aplicación simula el funcionamiento operativo de un taller automotriz, permitiendo a los usuarios:
-
-🧑‍🔧 Registrar y gestionar mecánicos con sus datos básicos y funciones.
-
-🚗 Registrar clientes y vehículos asociados.
-
-📄 Crear órdenes de reparación para cada vehículo.
-
-🧩 Asignar repuestos a una orden.
-
-💵 Calcular automáticamente los costos según los repuestos asignados.
-
-📌 Actualizar el estado de la orden (pendiente, en reparación, listo, pagado).
-
-⚡ Usar AJAX para enviar información sin recargar la página.
+El sistema utiliza **ASP.NET Core MVC con Razor** y una **biblioteca de clases** independiente que encapsula toda la lógica del dominio mediante POO, eventos, aspectos y principios SOLID (especialmente Inversión de Dependencias).
 
 ---
 
-*🧠 Arquitectura del sistema
+## 🧩 Descripción general
 
-La solución está dividida en dos partes principales:
+La aplicación permite simular el funcionamiento real de un taller mecánico, ofreciendo:
 
-*📚 Biblioteca de Clases (Dominio y Lógica)
+- 🧑‍🔧 **Gestión de mecánicos**
+- 🚗 **Registro de clientes y vehículos**
+- 📄 **Creación y edición de órdenes de reparación**
+- 🧩 **Asignación de repuestos a órdenes**
+- 💵 **Cálculo automático de costos**
+- 🔄 **Actualización del estado de las órdenes**
+- ⚡ **Uso de AJAX para una experiencia fluida**
 
-Contiene toda la lógica del negocio, estructurada con:
+---
 
-✔️ Programación Orientada a Objetos (POO)
+## 🧠 Arquitectura del sistema
 
-✔️ Programación Orientada a Eventos
+El proyecto está dividido en dos capas principales:
 
-✔️ Programación Orientada a Aspectos (AOP)
+### **1. Biblioteca de Clases (Dominio y Lógica de Negocio)**
+Implementa:
 
-✔️ Inversión de Dependencias (DIP)
+- Programación Orientada a Objetos (POO)
+- Programación Orientada a Eventos
+- Programación Orientada a Aspectos (AOP)
+- Inversión de Dependencias (DIP)
+- Principios SOLID
 
 Incluye:
 
-Modelos del dominio (Cliente, Mecánico, Repuesto, Orden, etc.)
-
-Servicios y reglas del negocio
-
-Validaciones centralizadas
-
-Eventos que reaccionan a cambios en las órdenes
-
-*🌐 Proyecto Web (ASP.NET Core MVC)
-
-Se encarga de:
-
-Controladores MVC
-
-Vistas Razor y parciales
-
-Formularios con validación
-
-Scripts JavaScript + Fetch AJAX
-
-Rutas, redirecciones y manejo visual
+- Modelos del dominio  
+- Servicios del negocio  
+- Eventos de actualización  
+- Validaciones  
+- Reglas de lógica interna  
 
 ---
 
-*🚀 Funcionalidades principales
+### **2. Proyecto Web (ASP.NET Core MVC con Razor)**
+Encargado de:
 
-🧑‍🔧 Gestión completa de mecánicos.
-
-🧍 Registro y administración de clientes.
-
-🚗 Registro de vehículos.
-
-📄 Creación de órdenes de reparación.
-
-🧩 Asignación de repuestos a cada orden.
-
-💵 Cálculo automático del costo total.
-
-🔄 Cambios de estado de la orden.
-
-⚡ Funciones AJAX para mejorar la experiencia del usuario.
+- Controladores  
+- Vistas Razor  
+- Scripts JS + Fetch AJAX  
+- Organización de rutas  
+- Renderizado de formularios y vistas parciales  
 
 ---
 
-*🛠️ Tecnologías utilizadas
+---
 
-C#
+## 🛠️ Funcionalidades principales
 
-.NET 10
+| Módulo        | Funcionalidades                                                         |
+|---------------|-------------------------------------------------------------------------|
+| 🧑‍🔧 Mecánicos | Registrar, editar, listar y eliminar mecánicos                         |
+| 🧑 Clientes    | Registrar clientes y sus vehículos                                      |
+| 🚗 Vehículos   | Asociar vehículos a un cliente                                          |
+| 📄 Órdenes     | Crear órdenes, asignar mecánico, cambiar estado                         |
+| 🧩 Repuestos   | Asignar repuestos y calcular costo                                      |
+| 💵 Costos      | Cálculo automático según repuestos                                      |
+| ⚡ AJAX        | Envío de formularios sin recargar la página                             |
 
-ASP.NET Core MVC
+---
 
-Razor Views
+## 🛠️ Tecnologías utilizadas
 
-JavaScript
+| Tecnología            | Descripción                         |
+|----------------------|-------------------------------------|
+| **C# .NET 10**       | Lenguaje principal                  |
+| **ASP.NET Core MVC**  | Arquitectura del proyecto           |
+| **Razor Views**       | Sistema de vistas                   |
+| **JavaScript (Fetch)**| Uso de AJAX moderno                 |
+| **Biblioteca POO/AOP**| Lógica del dominio                  |
+| **Patrón MVC**        | Separación de responsabilidades     |
 
-Biblioteca de clases modular
+---
 
-Principios SOLID
+## 🚀 Resumen final
+
+Este proyecto representa un sistema completo para la administración de un taller mecánico, implementado con buenas prácticas profesionales, arquitectura limpia y una biblioteca de clases altamente desacoplada.
+
